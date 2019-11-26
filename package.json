@@ -1,6 +1,6 @@
 {
   "name": "typechain-target-web3-rxjs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Package for connecting with Ethereum wallets for dApp",
   "main": "./lib/index.js",
   "types": "./lib/index.d.js",
