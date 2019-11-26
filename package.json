@@ -1,0 +1,93 @@
+{
+  "name": "typechain-target-web3-rxjs",
+  "version": "0.0.1",
+  "description": "Package for connecting with Ethereum wallets for dApp",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.js",
+  "scripts": {
+    "node": "node --max_old_space_size=4096 ./node_modules/.bin/cross-env TS_NODE_PROJECT=\"webpack/tsconfig.json\"",
+    "build": "npm run node -- webpack --config webpack/prod.ts",
+    "test": "jest",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx && tsc --noEmit --pretty",
+    "lint:autofix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akropolisio/typechain-target-web3-rxjs.git"
+  },
+  "keywords": [
+    "web3",
+    "rxjs",
+    "typechain-target"
+  ],
+  "author": "Dmitriy Serdtsev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akropolisio/typechain-target-web3-rxjs/issues"
+  },
+  "homepage": "https://github.com/akropolisio/typechain-target-web3-rxjs#readme",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.7.11",
+    "@types/web3": "^1.0.20",
+    "@types/webpack": "^4.41.0",
+    "@typescript-eslint/eslint-plugin": "^2.6.1",
+    "@typescript-eslint/parser": "^2.6.1",
+    "bn.js": "^5.0.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "commitizen": "^4.0.3",
+    "conventional-changelog-cli": "^2.0.28",
+    "cross-env": "^6.0.3",
+    "cz-conventional-changelog": "^3.0.2",
+    "dts-bundle-webpack": "^1.0.2",
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-typescript": "^6.1.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-json": "^2.0.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-react": "^7.16.0",
+    "eslint-plugin-react-hooks": "^2.2.0",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "raw-loader": "^3.1.0",
+    "rxjs": "^6.2.2",
+    "standard-version": "^7.0.1",
+    "ts-generator": "^0.0.8",
+    "ts-jest": "^24.1.0",
+    "ts-loader": "^6.2.1",
+    "ts-node": "^8.5.2",
+    "ts-toolbelt": "^4.10.7",
+    "tsconfig-paths": "^3.9.0",
+    "typechain": "^1.0.3",
+    "typescript": "^3.7.2",
+    "uglify-js": "^3.6.8",
+    "web3": "^1.2.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
+  },
+  "peerDependencies": {
+    "ts-generator": "^0.0.8",
+    "typechain": "^1.0.0"
+  },
+  "dependencies": {}
+}
