@@ -42,15 +42,10 @@ export const create${Name} = makeContractCreator(
 }
 
 function generateFunction(fn: FunctionDeclaration): string {
-  // throw new Error('>>>');
-  if (!fn.outputs.length || fn.outputs.length > 1) {
-    throw new Error('>>>');
-  }
-
   return `
     ${fn.name}: {
       ${fn.inputs.length ? `inputs: [${fn.inputs.map(generateInput).join(', ')}],` : ''}
-      ${fn.outputs[0] ? `output: ${generateOutput(fn.outputs[0])}` : ''}
+      ${fn.outputs[0] ? `output: ${generateOutput(fn.outputs)}` : ''}
   },`;
 }
 
@@ -66,8 +61,9 @@ function generateInput(param: AbiParameter) {
   return `getInput('${param.name}', '${param.type.type}')`;
 }
 
-function generateOutput(param: AbiOutputParameter) {
-  return `getOutput('${param.type.type}')`;
+function generateOutput(outputParams: AbiOutputParameter[]) {
+  const params = outputParams.map(item => `'${item.type.type}'`);
+  return `getOutput(${params.length === 1 ? params[0] : `[${params.join(', ')}] as const`})`;
 }
 
 // // eslint-disable-next-line consistent-return

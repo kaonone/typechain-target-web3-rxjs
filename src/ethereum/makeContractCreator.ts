@@ -36,7 +36,7 @@ interface GenericDescriptor {
 
 type MethodDescriptor = {
   inputs?: readonly Input[];
-  output?: Output;
+  output?: Output | readonly Output[];
 };
 
 interface EventDescriptor {
@@ -73,15 +73,21 @@ type MaybeInputsToArgs<S> = S extends readonly any[]
     : InputsToArg<S>
   : void;
 
+type ResponseByOutput<O extends Output | readonly Output[]> = O extends readonly Output[]
+  ? {
+      -readonly [key in keyof O]: RequestByABIDataType[Extract<O[key], Output>];
+    }
+  : RequestByABIDataType[Extract<O, Output>];
+
 type CallMethod<M extends MethodDescriptor, E extends Record<string, EventDescriptor>> = (
   input: MaybeInputsToArgs<M['inputs']>,
   eventsForReload?: EventsForReload<E>,
-) => Observable<RequestByABIDataType[NonNullable<M['output']>]>;
+) => Observable<ResponseByOutput<NonNullable<M['output']>>>;
 
 type SendMethod<M extends MethodDescriptor> = (
   input: MaybeInputsToArgs<M['inputs']>,
   tx: Tx,
-) => PromiEvent<RequestByABIDataType[NonNullable<M['output']>]>;
+) => PromiEvent<ResponseByOutput<NonNullable<M['output']>>>;
 
 type EventMethod<E extends EventDescriptor> = (
   options?: SubscribeEventOptions<E>,
@@ -124,7 +130,7 @@ export function getInput<N extends string, T extends ABIDataType>(name: N, type:
   return { name, type };
 }
 
-export function getOutput<T extends Output>(type: T): T {
+export function getOutput<T extends Output | readonly Output[]>(type: T): T {
   return type;
 }
 
@@ -171,8 +177,7 @@ export function makeContractCreator<D extends GenericDescriptor>(
               return getContractData$(baseContract, prop, {
                 args: inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
                 eventsForReload,
-                convert: (value: string | boolean | BN) =>
-                  output ? fromResponse[output](value) : value,
+                convert: makeConvertFromResponse(output),
               });
             };
           }
@@ -184,9 +189,7 @@ export function makeContractCreator<D extends GenericDescriptor>(
               const basePromiEvent = baseContract.methods[prop](
                 ...inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
               ).send(tx);
-              const resultPromiEvent = basePromiEvent.then(value =>
-                output ? fromResponse[output](value) : value,
-              );
+              const resultPromiEvent = basePromiEvent.then(makeConvertFromResponse(output));
 
               type PromiEventKeys = keyof typeof basePromiEvent;
 
@@ -222,6 +225,17 @@ export function makeContractCreator<D extends GenericDescriptor>(
         return target[prop];
       },
     }) as unknown) as ContractWrapper<D>;
+  };
+}
+
+function makeConvertFromResponse(output?: Output | readonly Output[]) {
+  return (value: string | boolean | BN | string[]) => {
+    if (!output) {
+      return value;
+    }
+    return typeof output === 'string'
+      ? fromResponse[output](value as string | boolean | BN)
+      : output.map((outputItem, index) => fromResponse[outputItem]((value as string[])[index]));
   };
 }
 
