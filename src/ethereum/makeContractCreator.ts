@@ -56,7 +56,9 @@ interface RequestByABIDataType {
   address: string;
   uinteger: BN;
   boolean: boolean;
-  // "string" | "boolean" | "integer" | "uinteger" | "bytes" | "dynamic-bytes" | "array" | "tuple"
+  void: void;
+  string: string;
+  // "integer" | "bytes" | "dynamic-bytes" | "array" | "tuple"
 }
 
 type InferTypeProp<T> = T extends Input<infer Name, infer Type>
@@ -132,6 +134,8 @@ const toRequest: {
   address: value => value,
   boolean: value => value,
   uinteger: value => value.toString(),
+  string: value => value,
+  void: value => String(value),
 };
 
 const fromResponse: {
@@ -140,6 +144,8 @@ const fromResponse: {
   address: value => String(value),
   boolean: value => Boolean(value),
   uinteger: value => new BN(value as string | BN),
+  string: value => String(value),
+  void: () => {},
 };
 
 export function makeContractCreator<D extends GenericDescriptor>(
