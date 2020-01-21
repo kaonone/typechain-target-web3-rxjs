@@ -87,7 +87,7 @@ type CallMethod<M extends MethodDescriptor, E extends Record<string, EventDescri
 type SendMethod<M extends MethodDescriptor> = (
   input: MaybeInputsToArgs<M['inputs']>,
   tx: Tx,
-) => PromiEvent<ResponseByOutput<NonNullable<M['output']>>>;
+) => PromiEvent<TransactionReceipt>;
 
 type EventMethod<E extends EventDescriptor> = (
   options?: SubscribeEventOptions<E>,
@@ -184,28 +184,11 @@ export function makeContractCreator<D extends GenericDescriptor>(
 
           // TODO need to debug this block
           if (sendMethodDescriptor) {
-            const { inputs = [], output } = sendMethodDescriptor;
+            const { inputs = [] } = sendMethodDescriptor;
             return (input: Record<string, BN | string | boolean>, tx?: Tx) => {
-              const basePromiEvent = baseContract.methods[prop](
+              return baseContract.methods[prop](
                 ...inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
               ).send(tx);
-              const resultPromiEvent = basePromiEvent.then(makeConvertFromResponse(output));
-
-              type PromiEventKeys = keyof typeof basePromiEvent;
-
-              const resultPromiEventKeys = ['then', 'catch', 'finally'] as const;
-              type ResultPromiEventKey = typeof resultPromiEventKeys[number];
-              const isResultPromiEventKey = (value: string): value is ResultPromiEventKey =>
-                resultPromiEventKeys.includes(value as ResultPromiEventKey);
-
-              return new Proxy(basePromiEvent, {
-                get(promiEventTarget, promiEventProp: PromiEventKeys) {
-                  if (isResultPromiEventKey(promiEventProp)) {
-                    return resultPromiEvent[promiEventProp].bind(resultPromiEvent);
-                  }
-                  return promiEventTarget[promiEventProp];
-                },
-              });
             };
           }
 
