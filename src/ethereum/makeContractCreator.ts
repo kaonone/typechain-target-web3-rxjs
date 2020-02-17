@@ -83,6 +83,7 @@ type ResponseByOutput<O extends Output | readonly Output[]> = O extends readonly
 type CallMethod<M extends MethodDescriptor, E extends Record<string, EventDescriptor>> = (
   input: MaybeInputsToArgs<M['inputs']>,
   eventsForReload?: EventsForReload<E>,
+  updatingDelay?: number,
 ) => Observable<ResponseByOutput<NonNullable<M['output']>>>;
 
 type SendMethod<M extends MethodDescriptor> = (
@@ -176,10 +177,12 @@ export function makeContractCreator<D extends GenericDescriptor>(
             return (
               input: Record<string, BN | string | boolean>,
               eventsForReload?: EventsForReload,
+              updatingDelay?: number,
             ) => {
               return getContractData$(baseContract, prop, {
                 args: inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
                 eventsForReload,
+                updatingDelay,
                 convert: makeConvertFromResponse(output),
               });
             };

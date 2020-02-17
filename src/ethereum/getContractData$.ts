@@ -1,5 +1,5 @@
-import { Observable, from, merge, empty } from 'rxjs';
-import { skipUntil, mergeMap, throttleTime } from 'rxjs/operators';
+import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
+import { skipUntil, mergeMap, throttleTime, delay } from 'rxjs/operators';
 import { EventEmitter } from 'web3/types';
 import Contract from 'web3/eth/contract';
 import { BlockType } from 'web3/eth/types';
@@ -22,6 +22,7 @@ interface IOptions<IV, RV> {
   reloadTrigger$?: Observable<any>;
   args?: Array<string | number>;
   convert?(value: IV): RV;
+  updatingDelay?: number;
 }
 
 function identity(value: any) {
@@ -38,6 +39,7 @@ export function getContractData$<IV, RV>(
     reloadTrigger$ = empty(),
     args = [],
     convert = identity,
+    updatingDelay = 0,
   } = options;
 
   const load = async () => {
@@ -68,8 +70,13 @@ export function getContractData$<IV, RV>(
   const fromEvents$ = merge(...emitters.map(emitter => fromWeb3DataEvent(emitter))).pipe(
     skipUntil(first$),
     throttleTime(200),
+    delay(updatingDelay),
     mergeMap(() => from(load()), 1),
   );
 
-  return merge(first$, fromEvents$, reloadTrigger$);
+  const subject = new ReplaySubject<RV>(1);
+
+  merge(first$, fromEvents$, reloadTrigger$).subscribe(subject);
+
+  return subject;
 }
