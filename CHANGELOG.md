@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.0.7...v0.1.0) (2020-04-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Change api for reload data on events
+
+* change api for reload data on events ([bfc09a9](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/bfc09a938be5d0a6f6f779e765d4ad6f9cfe91b3))
+
 ### [0.0.7](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.0.6...v0.0.7) (2020-02-17)
 
 ### [0.0.6](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.0.5...v0.0.6) (2020-02-04)
