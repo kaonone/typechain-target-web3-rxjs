@@ -80,9 +80,9 @@ type ResponseByOutput<O extends Output | readonly Output[]> = O extends readonly
     }
   : RequestByABIDataType[Extract<O, Output>];
 
-type CallMethod<M extends MethodDescriptor, E extends Record<string, EventDescriptor>> = (
+type CallMethod<M extends MethodDescriptor> = (
   input: MaybeInputsToArgs<M['inputs']>,
-  eventsForReload?: EventsForReload<E>,
+  eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
   updatingDelay?: number,
 ) => Observable<ResponseByOutput<NonNullable<M['output']>>>;
 
@@ -104,7 +104,7 @@ interface SubscribeEventOptions<E extends EventDescriptor> {
 
 type ContractWrapper<D extends GenericDescriptor> = {
   methods: {
-    [key in keyof D['callMethods']]: CallMethod<D['callMethods'][key], D['events']>;
+    [key in keyof D['callMethods']]: CallMethod<D['callMethods'][key]>;
   } &
     {
       [key in keyof D['sendMethods']]: SendMethod<D['sendMethods'][key]>;
@@ -116,17 +116,6 @@ type ContractWrapper<D extends GenericDescriptor> = {
   };
   getPastEvents: Contract['getPastEvents'];
 };
-
-type EventsForReload<
-  Events extends Record<string, EventDescriptor> = Record<string, EventDescriptor>
-> =
-  | 'none'
-  | 'all'
-  | {
-      [key in keyof Events]?:
-        | SubscribeEventOptions<Events[key]>
-        | Array<SubscribeEventOptions<Events[key]>>;
-    };
 
 export function getInput<N extends string, T extends ABIDataType>(name: N, type: T): Input<N, T> {
   return { name, type };
@@ -176,10 +165,10 @@ export function makeContractCreator<D extends GenericDescriptor>(
             const { inputs = [], output } = callMethodDescriptor;
             return (
               input: Record<string, BN | string | boolean>,
-              eventsForReload?: EventsForReload,
+              eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
               updatingDelay?: number,
             ) => {
-              return getContractData$(baseContract, prop, {
+              return getContractData$(baseContract, web3.eth, prop, {
                 args: inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
                 eventsForReload,
                 updatingDelay,
@@ -188,7 +177,6 @@ export function makeContractCreator<D extends GenericDescriptor>(
             };
           }
 
-          // TODO need to debug this block
           if (sendMethodDescriptor) {
             const { inputs = [] } = sendMethodDescriptor;
             return (input: Record<string, BN | string | boolean>, tx?: Tx) => {
@@ -209,7 +197,7 @@ export function makeContractCreator<D extends GenericDescriptor>(
           return methodsProxy;
         }
         if (prop === 'events') {
-          return target[prop]; // TODO integrate with RxJS Observables
+          return target[prop];
         }
         return target[prop];
       },

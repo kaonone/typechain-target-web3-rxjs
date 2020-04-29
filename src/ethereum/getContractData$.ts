@@ -1,24 +1,13 @@
 import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
-import { skipUntil, mergeMap, throttleTime, delay } from 'rxjs/operators';
+import { skipUntil, mergeMap, throttleTime, delay, switchMap } from 'rxjs/operators';
 import { EventEmitter } from 'web3/types';
+import Eth from 'web3/eth';
 import Contract from 'web3/eth/contract';
-import { BlockType } from 'web3/eth/types';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
 
-interface ISubscribeEventOptions {
-  filter?: object;
-  fromBlock?: BlockType;
-  topics?: string[];
-}
-
-export type EventsForReload =
-  | 'none'
-  | 'all'
-  | Partial<Record<string, ISubscribeEventOptions | Array<ISubscribeEventOptions>>>;
-
 interface IOptions<IV, RV> {
-  eventsForReload?: EventsForReload;
+  eventsForReload?: EventEmitter | EventEmitter[];
   reloadTrigger$?: Observable<any>;
   args?: Array<string | number>;
   convert?(value: IV): RV;
@@ -29,13 +18,18 @@ function identity(value: any) {
   return value;
 }
 
+function awaitMs(delayMs: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, delayMs));
+}
+
 export function getContractData$<IV, RV>(
   contract: Contract,
+  eth: Eth,
   method: string,
   options: IOptions<IV, RV> = {},
 ): Observable<RV> {
   const {
-    eventsForReload = 'none',
+    eventsForReload = [],
     reloadTrigger$ = empty(),
     args = [],
     convert = identity,
@@ -47,30 +41,25 @@ export function getContractData$<IV, RV>(
     return convert(data);
   };
 
-  const emitters = [eventsForReload === 'all' ? contract.events.allEvents() : null]
-    .concat(
-      typeof eventsForReload === 'string'
-        ? []
-        : Object.entries(eventsForReload)
-            .filter((value): value is [string, ISubscribeEventOptions] => !!value[1])
-            .reduce<Array<readonly [string, ISubscribeEventOptions]>>(
-              (acc, [name, filterOptions]) => [
-                ...acc,
-                ...(Array.isArray(filterOptions)
-                  ? filterOptions.map(item => [name, item] as const)
-                  : [[name, filterOptions] as const]),
-              ],
-              [],
-            )
-            .map(([event, filterOptions]) => contract.events[event](filterOptions)),
-    )
-    .filter((value): value is EventEmitter => Boolean(value));
+  const emitters = Array.isArray(eventsForReload) ? eventsForReload : [eventsForReload];
 
   const first$ = from(load());
   const fromEvents$ = merge(...emitters.map(emitter => fromWeb3DataEvent(emitter))).pipe(
     skipUntil(first$),
     throttleTime(200),
     delay(updatingDelay),
+    switchMap(async event => {
+      let currentBlock = await eth.getBlockNumber();
+
+      /* eslint-disable no-await-in-loop */
+      while (currentBlock < event.blockNumber) {
+        await awaitMs(500);
+        currentBlock = await eth.getBlockNumber();
+      }
+      /* eslint-enable no-await-in-loop */
+
+      return event;
+    }),
     mergeMap(() => from(load()), 1),
   );
 

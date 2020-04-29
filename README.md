@@ -25,18 +25,30 @@ import { createErc20 } from 'src/generated/contracts';
 const web3 = new Web3(PROVIDER);
 
 const dai = createErc20(web3, '0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea');
+const anotherContract = createAnotherContract(web3, '0x0000000000000000000000000000000000000000');
 
 // read and don’t update. By default behavior
 dai.methods.totalSupply();
-dai.methods.totalSupply(undefined, 'none');
 
-// read and update on any event
-dai.methods.totalSupply(undefined, 'all');
+// read and update on one events
+dai.methods.totalSupply(undefined, dai.events.Transfer());
 
-// read and update on some events
+// read and update on all events
+dai.methods.totalSupply(undefined, dai.events.allEvents());
+
+// read and update on multiple events with filters
 dai.methods.balanceOf(
   { _owner: MY_ADDRESS },
-  { Transfer: [{ filter: { _from: MY_ADDRESS } }, { filter: { _to: MY_ADDRESS } }] },
+  [
+    dai.events.Transfer({ filter: { _from: MY_ADDRESS } }),
+    dai.events.Transfer({ filter: { _to: MY_ADDRESS } }),
+  ],
+);
+
+// read and update on some event from another contract
+dai.methods.balanceOf(
+  { _owner: MY_ADDRESS },
+  anotherContract.events.SomeEvent(),
 );
 
 // call method (send transaction)
