@@ -54,12 +54,14 @@ type ABIDataType = keyof RequestByABIDataType;
 
 interface RequestByABIDataType {
   address: string;
+  integer: BN;
   uinteger: BN;
   boolean: boolean;
   void: void;
   string: string;
   bytes: string;
-  // "integer" | "dynamic-bytes" | "array" | "tuple"
+  'dynamic-bytes': string;
+  // "array" | "tuple"
 }
 
 type InferTypeProp<T> = T extends Input<infer Name, infer Type>
@@ -130,9 +132,11 @@ const toRequest: {
 } = {
   address: value => value,
   boolean: value => value,
+  integer: value => value.toString(),
   uinteger: value => value.toString(),
   string: value => value,
   bytes: value => value,
+  'dynamic-bytes': value => value,
   void: value => String(value),
 };
 
@@ -141,9 +145,11 @@ const fromResponse: {
 } = {
   address: value => String(value),
   boolean: value => Boolean(value),
+  integer: value => new BN(value as string | BN),
   uinteger: value => new BN(value as string | BN),
   string: value => String(value),
   bytes: value => String(value),
+  'dynamic-bytes': value => String(value),
   void: () => {},
 };
 
