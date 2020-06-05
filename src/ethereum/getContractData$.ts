@@ -1,5 +1,5 @@
 import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
-import { skipUntil, mergeMap, throttleTime, delay, switchMap } from 'rxjs/operators';
+import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from 'rxjs/operators';
 import { EventEmitter } from 'web3/types';
 import Eth from 'web3/eth';
 import Contract from 'web3/eth/contract';
@@ -61,6 +61,7 @@ export function getContractData$<IV, RV>(
       return event;
     }),
     mergeMap(() => from(load()), 1),
+    shareReplay(1),
   );
 
   const subject = new ReplaySubject<RV>(1);
