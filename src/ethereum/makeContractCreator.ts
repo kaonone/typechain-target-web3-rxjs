@@ -35,37 +35,57 @@ interface GenericDescriptor {
 }
 
 type MethodDescriptor = {
-  inputs?: readonly Input[];
-  output?: Output | readonly Output[];
+  inputs?: readonly Input<string, InputEvmType, boolean>[];
+  output?: readonly Output<OutputEvmType, boolean>[];
 };
 
 interface EventDescriptor {
   inputs: readonly Input[];
 }
 
-interface Input<N extends string = string, T extends ABIDataType = ABIDataType> {
+interface Input<
+  N extends string = string,
+  T extends InputEvmType = InputEvmType,
+  IA extends boolean = false
+> {
   name: N;
   type: T;
+  isArray: IA;
 }
 
-type Output = ABIDataType;
+type Output<T extends OutputEvmType = OutputEvmType, IA extends boolean = false> = {
+  type: T;
+  isArray: IA;
+};
 
-type ABIDataType = keyof RequestByABIDataType;
+export type JSType = InputEvmTypeToJSTypeMap[InputEvmType];
 
-interface RequestByABIDataType {
+type InputEvmTypeToJSTypeMap = {
   address: string;
   integer: BN;
   uinteger: BN;
   boolean: boolean;
-  void: void;
   string: string;
   bytes: string;
   'dynamic-bytes': string;
-  // "array" | "tuple"
-}
+  // "tuple"
+};
+type InputEvmType = keyof InputEvmTypeToJSTypeMap;
 
-type InferTypeProp<T> = T extends Input<infer Name, infer Type>
-  ? { [key in Name]: RequestByABIDataType[Type] }
+type OutputEvmTypeToJSTypeMap = InputEvmTypeToJSTypeMap & {
+  void: void;
+};
+type OutputEvmType = keyof OutputEvmTypeToJSTypeMap;
+
+type IOToJSType<
+  T extends Output<any, any>,
+  ToJSTypeMap extends Record<string, JSType | void>
+> = T['isArray'] extends true ? ToJSTypeMap[T['type']][] : ToJSTypeMap[T['type']];
+
+type InferTypeProp<T> = T extends Input<infer Name, InputEvmType, boolean>
+  ? {
+      [key in Name]: IOToJSType<T, InputEvmTypeToJSTypeMap>;
+    }
   : never;
 type InputsToArg<T> = MergeTupleMembers<{ [P in keyof T]: InferTypeProp<T[P]> }>;
 type MaybeInputsToArgs<S> = S extends readonly any[]
@@ -76,22 +96,30 @@ type MaybeInputsToArgs<S> = S extends readonly any[]
     : InputsToArg<S>
   : void;
 
-type ResponseByOutput<O extends Output | readonly Output[]> = O extends readonly Output[]
-  ? {
-      -readonly [key in keyof O]: RequestByABIDataType[Extract<O[key], Output>];
-    }
-  : RequestByABIDataType[Extract<O, Output>];
+type MaybeOutputToResponse<O> = O extends readonly any[]
+  ? A.Equals<O, readonly []> extends B.True
+    ? void
+    : A.Equals<O, []> extends B.True
+    ? void
+    : O extends [any] | readonly [any]
+    ? IOToJSType<Extract<O[0], Output>, OutputEvmTypeToJSTypeMap>
+    : {
+        -readonly [key in keyof O]: IOToJSType<Extract<O[key], Output>, OutputEvmTypeToJSTypeMap>;
+      }
+  : void;
 
-type CallMethod<M extends MethodDescriptor> = (
+type CallMethod<M extends MethodDescriptor = MethodDescriptor> = (
   input: MaybeInputsToArgs<M['inputs']>,
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
   updatingDelay?: number,
-) => Observable<ResponseByOutput<NonNullable<M['output']>>>;
+) => Observable<MaybeOutputToResponse<NonNullable<M['output']>>>;
 
-type SendMethod<M extends MethodDescriptor> = (
+type SendMethod<M extends MethodDescriptor = MethodDescriptor> = ((
   input: MaybeInputsToArgs<M['inputs']>,
   tx: Tx,
-) => PromiEvent<TransactionReceipt>;
+) => PromiEvent<TransactionReceipt>) & {
+  read: CallMethod<M>;
+};
 
 type EventMethod<E extends EventDescriptor> = (
   options?: SubscribeEventOptions<E>,
@@ -119,16 +147,34 @@ type ContractWrapper<D extends GenericDescriptor> = {
   getPastEvents: Contract['getPastEvents'];
 };
 
-export function getInput<N extends string, T extends ABIDataType>(name: N, type: T): Input<N, T> {
-  return { name, type };
+export function getInput<N extends string, T extends InputEvmType>(name: N, type: T): Input<N, T>;
+export function getInput<N extends string, T extends InputEvmType>(
+  name: N,
+  type: T,
+  isArray: true,
+): Input<N, T, true>;
+export function getInput<N extends string, T extends InputEvmType>(
+  name: N,
+  type: T,
+  isArray: boolean = false,
+): Input<N, T, boolean> {
+  return { name, type, isArray };
 }
 
-export function getOutput<T extends Output | readonly Output[]>(type: T): T {
-  return type;
+export function getOutput<T extends OutputEvmType = OutputEvmType>(type: T): Output<T>;
+export function getOutput<T extends OutputEvmType = OutputEvmType>(
+  type: T,
+  isArray: true,
+): Output<T, true>;
+export function getOutput<T extends OutputEvmType = OutputEvmType>(
+  type: T,
+  isArray: boolean = false,
+): Output<T, boolean> {
+  return { type, isArray };
 }
 
 const toRequest: {
-  [key in ABIDataType]: (input: RequestByABIDataType[key]) => string | boolean;
+  [key in InputEvmType]: (input: InputEvmTypeToJSTypeMap[key]) => JSType;
 } = {
   address: value => value,
   boolean: value => value,
@@ -137,11 +183,10 @@ const toRequest: {
   string: value => value,
   bytes: value => value,
   'dynamic-bytes': value => value,
-  void: value => String(value),
 };
 
 const fromResponse: {
-  [key in ABIDataType]: (input: string | boolean | BN) => RequestByABIDataType[key];
+  [key in OutputEvmType]: (input: JSType) => OutputEvmTypeToJSTypeMap[key];
 } = {
   address: value => String(value),
   boolean: value => Boolean(value),
@@ -167,29 +212,48 @@ export function makeContractCreator<D extends GenericDescriptor>(
           const callMethodDescriptor = _descriptor.callMethods[prop];
           const sendMethodDescriptor = _descriptor.sendMethods[prop];
 
+          if (!callMethodDescriptor && !sendMethodDescriptor) {
+            return target[prop];
+          }
+
+          const { inputs: callInputs = [], output: callOutput } =
+            callMethodDescriptor || sendMethodDescriptor;
+
+          const callFunction: CallMethod = (
+            input: void | Record<string, JSType | JSType[]>,
+            eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
+            updatingDelay?: number,
+          ) => {
+            return getContractData$(baseContract, web3.eth, prop, {
+              args: input
+                ? callInputs.map(({ name, type }) => convertInputValueToRequest(type, input[name]))
+                : [],
+              eventsForReload,
+              updatingDelay,
+              convert: makeConvertFromResponse(callOutput && [...callOutput]),
+            }) as Observable<any>;
+          };
+
           if (callMethodDescriptor) {
-            const { inputs = [], output } = callMethodDescriptor;
-            return (
-              input: Record<string, BN | string | boolean>,
-              eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
-              updatingDelay?: number,
-            ) => {
-              return getContractData$(baseContract, web3.eth, prop, {
-                args: inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
-                eventsForReload,
-                updatingDelay,
-                convert: makeConvertFromResponse(output),
-              });
-            };
+            return callFunction;
           }
 
           if (sendMethodDescriptor) {
             const { inputs = [] } = sendMethodDescriptor;
-            return (input: Record<string, BN | string | boolean>, tx?: Tx) => {
-              return baseContract.methods[prop](
-                ...inputs.map(({ name, type }) => (toRequest[type] as any)(input[name])),
-              ).send(tx);
-            };
+
+            const sendFunction: SendMethod = attachStaticFields(
+              (input: void | Record<string, BN | string | boolean>, tx: Tx) => {
+                const args = input
+                  ? inputs.map(({ name, type }) => convertInputValueToRequest(type, input[name]))
+                  : [];
+                return baseContract.methods[prop](...args).send(tx);
+              },
+              {
+                read: callFunction,
+              },
+            );
+
+            return sendFunction;
           }
 
           return target[prop];
@@ -211,15 +275,46 @@ export function makeContractCreator<D extends GenericDescriptor>(
   };
 }
 
-function makeConvertFromResponse(output?: Output | readonly Output[]) {
-  return (value: string | boolean | BN | string[]) => {
-    if (!output) {
+export function attachStaticFields<T extends {}, I extends Record<string, any>>(
+  target: T,
+  staticFields: I,
+): T & I {
+  const result: T & I = target as T & I;
+
+  Object.keys(staticFields).forEach((key: keyof I) => {
+    (result as I)[key] = staticFields[key];
+  });
+
+  return result;
+}
+
+function convertInputValueToRequest(
+  type: InputEvmType,
+  value: JSType | JSType[],
+): JSType | JSType[] {
+  return Array.isArray(value) ? value.map(toRequest[type] as any) : (toRequest[type] as any)(value);
+}
+
+function makeConvertFromResponse(output?: Output<OutputEvmType, boolean>[]) {
+  return (value: JSType | JSType[]) => {
+    if (!output || !output.length) {
       return value;
     }
-    return typeof output === 'string'
-      ? fromResponse[output](value as string | boolean | BN)
-      : output.map((outputItem, index) => fromResponse[outputItem]((value as string[])[index]));
+    return output.length > 1
+      ? output.map((outputItem, index) =>
+          convertOutputValueFromResponse(outputItem.type, (value as JSType[])[index]),
+        )
+      : convertOutputValueFromResponse(output[0].type, value as JSType);
   };
+}
+
+function convertOutputValueFromResponse(
+  type: OutputEvmType,
+  value: JSType | JSType[],
+): JSType | JSType[] {
+  return Array.isArray(value)
+    ? value.map(fromResponse[type] as any)
+    : (fromResponse[type] as any)(value);
 }
 
 /* ***** MERGE ***** */

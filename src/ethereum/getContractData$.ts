@@ -5,11 +5,12 @@ import Eth from 'web3/eth';
 import Contract from 'web3/eth/contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
+import { JSType } from './makeContractCreator';
 
 interface IOptions<IV, RV> {
   eventsForReload?: EventEmitter | EventEmitter[];
   reloadTrigger$?: Observable<any>;
-  args?: Array<string | number>;
+  args?: Array<JSType | JSType[]>;
   convert?(value: IV): RV;
   updatingDelay?: number;
 }

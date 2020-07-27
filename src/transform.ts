@@ -44,26 +44,41 @@ export const create${Name} = makeContractCreator(
 function generateFunction(fn: FunctionDeclaration): string {
   return `
     ${fn.name}: {
-      ${fn.inputs.length ? `inputs: [${fn.inputs.map(generateInput).join(', ')}],` : ''}
-      ${fn.outputs[0] ? `output: ${generateOutput(fn.outputs)}` : ''}
+      ${
+        fn.inputs.length
+          ? `inputs: [${fn.inputs.map(x => generateIO('input', x)).join(', ')}],`
+          : ''
+      }
+      ${fn.outputs[0] ? `output: [${fn.outputs.map(x => generateIO('output', x)).join(', ')}]` : ''}
   },`;
 }
 
 function generateEvent(event: EventDeclaration) {
   return `
     ${event.name}: {
-      inputs: [${event.inputs.map(generateInput).join(', ')}],
+      inputs: [${event.inputs.map(x => generateIO('input', x)).join(', ')}],
     },
   `;
 }
 
-function generateInput(param: AbiParameter) {
-  return `getInput('${param.name}', '${param.type.type}')`;
-}
+const ioFuncByType = {
+  input: 'getInput',
+  output: 'getOutput',
+};
 
-function generateOutput(outputParams: AbiOutputParameter[]) {
-  const params = outputParams.map(item => `'${item.type.type}'`);
-  return `getOutput(${params.length === 1 ? params[0] : `[${params.join(', ')}] as const`})`;
+type ParamByIOType = {
+  input: AbiParameter;
+  output: AbiOutputParameter;
+};
+
+function generateIO<T extends 'input' | 'output'>(type: T, param: ParamByIOType[T]) {
+  const params: string[] = [
+    type === 'input' ? `'${param.name}'` : '',
+    `'${param.type.type === 'array' ? param.type.itemType.type : param.type.type}'`,
+    param.type.type === 'array' ? 'true' : '',
+  ].filter(Boolean);
+
+  return `${ioFuncByType[type]}(${params.join(', ')})`;
 }
 
 // // eslint-disable-next-line consistent-return
