@@ -102,7 +102,7 @@ type MaybeOutputToResponse<O> = O extends readonly any[]
     : A.Equals<O, []> extends B.True
     ? void
     : O extends [any] | readonly [any]
-    ? IOToJSType<Extract<O[0], Output>, OutputEvmTypeToJSTypeMap>
+    ? IOToJSType<Extract<O[0], Output<OutputEvmType, boolean>>, OutputEvmTypeToJSTypeMap>
     : {
         -readonly [key in keyof O]: IOToJSType<Extract<O[key], Output>, OutputEvmTypeToJSTypeMap>;
       }
