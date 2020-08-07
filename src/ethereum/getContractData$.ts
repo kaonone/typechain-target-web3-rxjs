@@ -3,6 +3,7 @@ import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from
 import { EventEmitter } from 'web3/types';
 import Eth from 'web3/eth';
 import Contract from 'web3/eth/contract';
+import { Tx } from 'web3/eth/types';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
 import { JSType } from './makeContractCreator';
@@ -13,6 +14,7 @@ interface IOptions<IV, RV> {
   args?: Array<JSType | JSType[]>;
   convert?(value: IV): RV;
   updatingDelay?: number;
+  tx?: Tx;
 }
 
 function identity(value: any) {
@@ -38,7 +40,7 @@ export function getContractData$<IV, RV>(
   } = options;
 
   const load = async () => {
-    const data = await contract.methods[method](...args).call();
+    const data = await contract.methods[method](...args).call(options.tx);
     return convert(data);
   };
 

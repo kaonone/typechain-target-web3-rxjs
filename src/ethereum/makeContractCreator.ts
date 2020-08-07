@@ -114,11 +114,19 @@ type CallMethod<M extends MethodDescriptor = MethodDescriptor> = (
   updatingDelay?: number,
 ) => Observable<MaybeOutputToResponse<NonNullable<M['output']>>>;
 
+// for read non view methods
+type ReadMethod<M extends MethodDescriptor = MethodDescriptor> = (
+  input: MaybeInputsToArgs<M['inputs']>,
+  tx: Tx,
+  eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
+  updatingDelay?: number,
+) => Observable<MaybeOutputToResponse<NonNullable<M['output']>>>;
+
 type SendMethod<M extends MethodDescriptor = MethodDescriptor> = ((
   input: MaybeInputsToArgs<M['inputs']>,
   tx: Tx,
 ) => PromiEvent<TransactionReceipt>) & {
-  read: CallMethod<M>;
+  read: ReadMethod<M>;
 };
 
 type EventMethod<E extends EventDescriptor> = (
@@ -219,12 +227,14 @@ export function makeContractCreator<D extends GenericDescriptor>(
           const { inputs: callInputs = [], output: callOutput } =
             callMethodDescriptor || sendMethodDescriptor;
 
-          const callFunction: CallMethod = (
+          const baseCallFunction = (
             input: void | Record<string, JSType | JSType[]>,
             eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
             updatingDelay?: number,
+            tx?: Tx,
           ) => {
             return getContractData$(baseContract, web3.eth, prop, {
+              tx,
               args: input
                 ? callInputs.map(({ name, type }) => convertInputValueToRequest(type, input[name]))
                 : [],
@@ -233,6 +243,15 @@ export function makeContractCreator<D extends GenericDescriptor>(
               convert: makeConvertFromResponse(callOutput && [...callOutput]),
             }) as Observable<any>;
           };
+
+          const callFunction: CallMethod = baseCallFunction;
+
+          const readFunction: ReadMethod = (
+            input: void | Record<string, JSType | JSType[]>,
+            tx: Tx,
+            eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
+            updatingDelay?: number,
+          ) => baseCallFunction(input, eventsForReload, updatingDelay, tx);
 
           if (callMethodDescriptor) {
             return callFunction;
@@ -249,7 +268,7 @@ export function makeContractCreator<D extends GenericDescriptor>(
                 return baseContract.methods[prop](...args).send(tx);
               },
               {
-                read: callFunction,
+                read: readFunction,
               },
             );
 
