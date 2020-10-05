@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.1.5...v0.1.6) (2020-10-05)
+
+
+### Features
+
+* add getTransaction to SendMethod ([b01bfb0](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/b01bfb0f3437464094d0271a2bff0adee8c67a12))
+
 ### [0.1.5](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.1.4...v0.1.5) (2020-08-07)
 
 ### [0.1.4](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.1.3...v0.1.4) (2020-08-02)
