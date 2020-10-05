@@ -6,7 +6,7 @@ import PromiEvent from 'web3/promiEvent';
 import { Callback, EventLog as Web3EventLog, TransactionReceipt } from 'web3/types';
 import { ABIDefinition } from 'web3/eth/abi';
 import Contract from 'web3/eth/contract';
-import { BlockType, Tx as Web3TX } from 'web3/eth/types';
+import { BlockType, TransactionObject, Tx as Web3TX } from 'web3/eth/types';
 
 import { getContractData$ } from './getContractData$';
 
@@ -126,6 +126,7 @@ type SendMethod<M extends MethodDescriptor = MethodDescriptor> = ((
   input: MaybeInputsToArgs<M['inputs']>,
   tx: Tx,
 ) => PromiEvent<TransactionReceipt>) & {
+  getTransaction(input: MaybeInputsToArgs<M['inputs']>): TransactionObject<TransactionReceipt>;
   read: ReadMethod<M>;
 };
 
@@ -260,14 +261,21 @@ export function makeContractCreator<D extends GenericDescriptor>(
           if (sendMethodDescriptor) {
             const { inputs = [] } = sendMethodDescriptor;
 
+            const getTransactionFunction = (
+              input: void | Record<string, BN | string | boolean>,
+            ) => {
+              const args = input
+                ? inputs.map(({ name, type }) => convertInputValueToRequest(type, input[name]))
+                : [];
+              return baseContract.methods[prop](...args);
+            };
+
             const sendFunction: SendMethod = attachStaticFields(
               (input: void | Record<string, BN | string | boolean>, tx: Tx) => {
-                const args = input
-                  ? inputs.map(({ name, type }) => convertInputValueToRequest(type, input[name]))
-                  : [];
-                return baseContract.methods[prop](...args).send(tx);
+                return getTransactionFunction(input).send(tx);
               },
               {
+                getTransaction: getTransactionFunction,
                 read: readFunction,
               },
             );
