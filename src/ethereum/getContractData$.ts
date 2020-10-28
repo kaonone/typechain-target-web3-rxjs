@@ -1,27 +1,15 @@
 import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
 import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from 'rxjs/operators';
-import { EventLog } from 'web3-core/types';
-import { TransactionReceipt } from 'web3-eth';
 import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
-import { JSType } from './makeContractCreator';
+import { EventEmitter, JSType } from './makeContractCreator';
 
 /* ***** OVERRIDE WEB3 TYPES ***** */
 
-interface EventEmitter {
-  on(type: 'data', handler: (event: EventLog) => void): EventEmitter;
-  on(type: 'changed', handler: (receipt: EventLog) => void): EventEmitter;
-  on(type: 'error', handler: (error: Error) => void): EventEmitter;
-  on(
-    type: 'error' | 'data' | 'changed',
-    handler: (error: Error | TransactionReceipt | string) => void,
-  ): EventEmitter;
-}
-
 interface IOptions<IV, RV> {
-  eventsForReload?: EventEmitter | EventEmitter[];
+  eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
   reloadTrigger$?: Observable<any>;
   args?: Array<JSType | JSType[]>;
   convert?(value: IV): RV;

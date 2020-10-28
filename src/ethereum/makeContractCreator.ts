@@ -2,8 +2,7 @@ import { Observable } from 'rxjs';
 import { A, B, O } from 'ts-toolbelt';
 import BN from 'bn.js';
 import Web3 from 'web3';
-import { PromiEvent } from 'web3-core';
-import { EventLog as Web3EventLog, TransactionReceipt } from 'web3-core/types';
+import { PromiEvent, EventLog as Web3EventLog, TransactionReceipt } from 'web3-core';
 import { Contract } from 'web3-eth-contract';
 
 import { getContractData$ } from './getContractData$';
