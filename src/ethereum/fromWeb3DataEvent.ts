@@ -1,5 +1,5 @@
 import { fromEventPattern, Observable } from 'rxjs';
-import { EventLog } from 'web3-core/types';
+import { EventLog } from 'web3-core';
 
 import { EventEmitter } from './makeContractCreator';
 
