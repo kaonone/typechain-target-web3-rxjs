@@ -3,7 +3,6 @@ import { EventLog } from 'web3-core/types';
 
 import { EventEmitter } from './makeContractCreator';
 
-
 export function fromWeb3DataEvent(emitter: EventEmitter<any>): Observable<EventLog> {
   interface IUnsubscribable {
     unsubscribe: () => void;

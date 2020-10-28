@@ -18,14 +18,14 @@ interface IOptions<IV, RV> {
 }
 
 interface Tx {
-	nonce?: string | number;
-	chainId?: string | number;
-	from?: string;
-	to?: string;
-	data?: string;
-	value?: string | number;
-	gas?: string | number;
-	gasPrice?: string | number;
+  nonce?: string | number;
+  chainId?: string | number;
+  from?: string;
+  to?: string;
+  data?: string;
+  value?: string | number;
+  gas?: string | number;
+  gasPrice?: string | number;
 }
 
 /* ***** */
