@@ -5,7 +5,7 @@ import Web3 from 'web3';
 import { PromiEvent, EventLog as Web3EventLog, TransactionReceipt } from 'web3-core';
 import { Contract } from 'web3-eth-contract';
 
-import { getContractData$ } from './getContractData$';
+import { getContractData$, Tx as Web3TX } from './getContractData$';
 
 /* ***** OVERRIDE WEB3 TYPES ***** */
 
@@ -16,17 +16,6 @@ type Callback<T> = (error: Error, result: T) => void;
 type Tx = O.Required<Web3TX, 'from'>;
 
 type EventLog<T> = Omit<Web3EventLog, 'returnValues'> & { returnValues: T };
-
-interface Web3TX {
-  nonce?: string | number;
-  chainId?: string | number;
-  from?: string;
-  to?: string;
-  data?: string;
-  value?: string | number;
-  gas?: string | number;
-  gasPrice?: string | number;
-}
 
 export interface EventEmitter<T> {
   on(type: 'data', handler: (event: EventLog<T>) => void): EventEmitter<T>;

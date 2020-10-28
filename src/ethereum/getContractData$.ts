@@ -17,7 +17,7 @@ interface IOptions<IV, RV> {
   tx?: Tx;
 }
 
-interface Tx {
+export interface Tx {
   nonce?: string | number;
   chainId?: string | number;
   from?: string;
