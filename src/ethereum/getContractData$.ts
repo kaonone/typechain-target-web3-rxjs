@@ -1,12 +1,24 @@
 import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
 import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from 'rxjs/operators';
-import { EventEmitter } from 'web3/types';
-import Eth from 'web3/eth';
-import Contract from 'web3/eth/contract';
-import { Tx } from 'web3/eth/types';
+import { EventLog } from 'web3-core/types';
+import { TransactionReceipt } from 'web3-eth';
+import { Eth } from 'web3-eth';
+import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
 import { JSType } from './makeContractCreator';
+
+/* ***** OVERRIDE WEB3 TYPES ***** */
+
+interface EventEmitter {
+  on(type: 'data', handler: (event: EventLog) => void): EventEmitter;
+  on(type: 'changed', handler: (receipt: EventLog) => void): EventEmitter;
+  on(type: 'error', handler: (error: Error) => void): EventEmitter;
+  on(
+    type: 'error' | 'data' | 'changed',
+    handler: (error: Error | TransactionReceipt | string) => void,
+  ): EventEmitter;
+}
 
 interface IOptions<IV, RV> {
   eventsForReload?: EventEmitter | EventEmitter[];
@@ -16,6 +28,19 @@ interface IOptions<IV, RV> {
   updatingDelay?: number;
   tx?: Tx;
 }
+
+interface Tx {
+	nonce?: string | number;
+	chainId?: string | number;
+	from?: string;
+	to?: string;
+	data?: string;
+	value?: string | number;
+	gas?: string | number;
+	gasPrice?: string | number;
+}
+
+/* ***** */
 
 function identity(value: any) {
   return value;

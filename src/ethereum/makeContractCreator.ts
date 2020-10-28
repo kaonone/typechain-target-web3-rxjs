@@ -2,19 +2,32 @@ import { Observable } from 'rxjs';
 import { A, B, O } from 'ts-toolbelt';
 import BN from 'bn.js';
 import Web3 from 'web3';
-import PromiEvent from 'web3/promiEvent';
-import { Callback, EventLog as Web3EventLog, TransactionReceipt } from 'web3/types';
-import { ABIDefinition } from 'web3/eth/abi';
-import Contract from 'web3/eth/contract';
-import { BlockType, TransactionObject, Tx as Web3TX } from 'web3/eth/types';
+import { PromiEvent } from 'web3-core';
+import { EventLog as Web3EventLog, TransactionReceipt } from 'web3-core/types';
+import { Contract } from 'web3-eth-contract';
 
 import { getContractData$ } from './getContractData$';
 
 /* ***** OVERRIDE WEB3 TYPES ***** */
 
+type BlockType = 'latest' | 'pending' | 'genesis' | number;
+
+type Callback<T> = (error: Error, result: T) => void;
+
 type Tx = O.Required<Web3TX, 'from'>;
 
 type EventLog<T> = Omit<Web3EventLog, 'returnValues'> & { returnValues: T };
+
+interface Web3TX {
+  nonce?: string | number;
+  chainId?: string | number;
+  from?: string;
+  to?: string;
+  data?: string;
+  value?: string | number;
+  gas?: string | number;
+  gasPrice?: string | number;
+}
 
 export interface EventEmitter<T> {
   on(type: 'data', handler: (event: EventLog<T>) => void): EventEmitter<T>;
@@ -24,6 +37,14 @@ export interface EventEmitter<T> {
     type: 'error' | 'data' | 'changed',
     handler: (error: Error | TransactionReceipt | string) => void,
   ): EventEmitter<T>;
+}
+
+interface TransactionObject<T> {
+  arguments: any[];
+  call(tx?: Tx): Promise<T>;
+  send(tx?: Tx): PromiEvent<T>;
+  estimateGas(tx?: Tx): Promise<number>;
+  encodeABI(): string;
 }
 
 /* ***** */
@@ -207,10 +228,7 @@ const fromResponse: {
   void: () => {},
 };
 
-export function makeContractCreator<D extends GenericDescriptor>(
-  _abi: ABIDefinition[],
-  _descriptor: D,
-) {
+export function makeContractCreator<D extends GenericDescriptor>(_abi: any[], _descriptor: D) {
   return (web3: Web3, address: string): ContractWrapper<D> => {
     const baseContract = new web3.eth.Contract(_abi, address);
 
