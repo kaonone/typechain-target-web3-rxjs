@@ -8,7 +8,7 @@
     "node": "node --max_old_space_size=4096 ./node_modules/.bin/cross-env TS_NODE_PROJECT=\"webpack/tsconfig.json\"",
     "build": "npm run node -- webpack --config webpack/prod.ts",
     "test": "jest",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx && tsc --noEmit --pretty",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx && tsc --noEmit --pretty --incremental false",
     "lint:autofix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
   },
   "config": {
@@ -46,7 +46,6 @@
     "@commitlint/config-conventional": "^8.2.0",
     "@types/jest": "^24.0.23",
     "@types/node": "^12.7.11",
-    "@types/web3": "^1.0.20",
     "@types/webpack": "^4.41.0",
     "@typescript-eslint/eslint-plugin": "^2.6.1",
     "@typescript-eslint/parser": "^2.6.1",

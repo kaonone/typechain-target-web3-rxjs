@@ -1,15 +1,13 @@
 import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
 import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from 'rxjs/operators';
-import { EventEmitter } from 'web3/types';
-import Eth from 'web3/eth';
-import Contract from 'web3/eth/contract';
-import { Tx } from 'web3/eth/types';
+import { Eth } from 'web3-eth';
+import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
-import { JSType } from './makeContractCreator';
+import { EventEmitter, Tx, JSType } from './types';
 
 interface IOptions<IV, RV> {
-  eventsForReload?: EventEmitter | EventEmitter[];
+  eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
   reloadTrigger$?: Observable<any>;
   args?: Array<JSType | JSType[]>;
   convert?(value: IV): RV;

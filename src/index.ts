@@ -10,6 +10,8 @@ import fromWeb3DataEvent from './ethereum/fromWeb3DataEvent';
 import getContractData$ from './ethereum/getContractData$';
 // @ts-ignore
 import makeContractCreator from './ethereum/makeContractCreator';
+// @ts-ignore
+import types from './ethereum/types';
 import { transform } from './transform';
 
 export interface IWeb3Cfg {
@@ -75,6 +77,10 @@ export default class Web3 extends TsGeneratorPlugin {
       {
         path: join(this.outDirAbs, 'utils/makeContractCreator.ts'),
         contents: makeContractCreator,
+      },
+      {
+        path: join(this.outDirAbs, 'utils/types.ts'),
+        contents: types,
       },
       {
         path: join(this.outDirAbs, 'index.ts'),
