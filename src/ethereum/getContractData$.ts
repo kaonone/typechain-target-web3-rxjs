@@ -6,8 +6,6 @@ import { Contract } from 'web3-eth-contract';
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
 import { EventEmitter, Tx, JSType } from './types';
 
-/* ***** OVERRIDE WEB3 TYPES ***** */
-
 interface IOptions<IV, RV> {
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
   reloadTrigger$?: Observable<any>;
@@ -16,8 +14,6 @@ interface IOptions<IV, RV> {
   updatingDelay?: number;
   tx?: Tx;
 }
-
-/* ***** */
 
 function identity(value: any) {
   return value;
