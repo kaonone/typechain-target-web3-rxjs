@@ -77,6 +77,10 @@ export default class Web3 extends TsGeneratorPlugin {
         contents: makeContractCreator,
       },
       {
+        path: join(this.outDirAbs, 'utils/types.ts'),
+        contents: makeContractCreator,
+      },
+      {
         path: join(this.outDirAbs, 'index.ts'),
         contents: this.creatorNames.map(name => `export { ${name} } from './${name}'`).join('\n'),
       },

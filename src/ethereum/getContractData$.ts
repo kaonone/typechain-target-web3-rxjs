@@ -4,7 +4,7 @@ import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
-import { EventEmitter, JSType } from './makeContractCreator';
+import { EventEmitter, Tx, JSType } from './types';
 
 /* ***** OVERRIDE WEB3 TYPES ***** */
 
@@ -15,17 +15,6 @@ interface IOptions<IV, RV> {
   convert?(value: IV): RV;
   updatingDelay?: number;
   tx?: Tx;
-}
-
-export interface Tx {
-  nonce?: string | number;
-  chainId?: string | number;
-  from?: string;
-  to?: string;
-  data?: string;
-  value?: string | number;
-  gas?: string | number;
-  gasPrice?: string | number;
 }
 
 /* ***** */
