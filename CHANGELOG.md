@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.1.6...v0.1.7) (2020-10-29)
+
+
+### Features
+
+* **bump version and publish to npm:** replace npm with yarn ([3256ed5](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/3256ed5f2fba9c15ce38771689045cec8c3d651c))
+
+
+### Bug Fixes
+
+* fix types 'contents' import ([9fb22ba](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/9fb22ba22b1dccbb77a76bf929f6c2102cf957ee))
+* fix web3 types errors ([d9c2053](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/d9c2053766908d115e821aaac8977d20c0d55abb))
+* remove circular dependencies ([b94a9ba](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/b94a9ba12398b742984fadc6048db629f26ab13c))
+* replace yarn ci with yarn ([d6be01b](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/d6be01b5c628aef790c563d9ad90212dde0afcdd))
+
 ### [0.1.6](https://github.com/akropolisio/typechain-target-web3-rxjs/compare/v0.1.5...v0.1.6) (2020-10-05)
 
 
