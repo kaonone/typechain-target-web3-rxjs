@@ -40,20 +40,27 @@ interface GenericDescriptor {
 }
 
 type MethodDescriptor = {
-  inputs?: readonly Input<string, InputEvmType, boolean>[];
+  inputs?: readonly NamedInput<string, InputEvmType | Input<InputEvmType, boolean>, boolean>[];
   output?: readonly Output<OutputEvmType, boolean>[];
 };
 
 interface EventDescriptor {
-  inputs: readonly Input[];
+  inputs: readonly NamedInput[];
 }
 
-interface Input<
+interface NamedInput<
   N extends string = string,
-  T extends InputEvmType = InputEvmType,
+  T extends InputEvmType | Input<InputEvmType, boolean> =
+    | InputEvmType
+    | Input<InputEvmType, boolean>,
   IA extends boolean = false
 > {
   name: N;
+  type: T;
+  isArray: IA;
+}
+
+interface Input<T extends InputEvmType = InputEvmType, IA extends boolean = false> {
   type: T;
   isArray: IA;
 }
@@ -73,10 +80,12 @@ type IOToJSType<
   ToJSTypeMap extends Record<string, JSType | void>
 > = T['isArray'] extends true ? ToJSTypeMap[T['type']][] : ToJSTypeMap[T['type']];
 
-type InferTypeProp<T> = T extends Input<infer Name, InputEvmType, boolean>
-  ? {
-      [key in Name]: IOToJSType<T, InputEvmTypeToJSTypeMap>;
-    }
+type InferTypeProp<T> = T extends NamedInput<infer Name, infer Type, boolean>
+  ? Type extends OutputEvmType
+    ? {
+        [key in Name]: IOToJSType<T, InputEvmTypeToJSTypeMap>;
+      }
+    : { [key in Name]: IOToJSType<Exclude<Type, OutputEvmType>, InputEvmTypeToJSTypeMap>[] }
   : never;
 type InputsToArg<T> = MergeTupleMembers<{ [P in keyof T]: InferTypeProp<T[P]> }>;
 type MaybeInputsToArgs<S> = S extends readonly any[]
@@ -147,18 +156,28 @@ type ContractWrapper<D extends GenericDescriptor> = {
   getPastEvents: Contract['getPastEvents'];
 };
 
-export function getInput<N extends string, T extends InputEvmType>(name: N, type: T): Input<N, T>;
-export function getInput<N extends string, T extends InputEvmType>(
-  name: N,
-  type: T,
-  isArray: true,
-): Input<N, T, true>;
-export function getInput<N extends string, T extends InputEvmType>(
-  name: N,
+export function getNamedInput<
+  N extends string,
+  T extends InputEvmType | Input<InputEvmType, boolean>
+>(name: N, type: T): NamedInput<N, T>;
+export function getNamedInput<
+  N extends string,
+  T extends InputEvmType | Input<InputEvmType, boolean>
+>(name: N, type: T, isArray: true): NamedInput<N, T, true>;
+export function getNamedInput<
+  N extends string,
+  T extends InputEvmType | Input<InputEvmType, boolean>
+>(name: N, type: T, isArray: boolean = false): NamedInput<N, T, boolean> {
+  return { name, type, isArray };
+}
+
+export function getInput<T extends InputEvmType>(type: T): Input<T>;
+export function getInput<T extends InputEvmType>(type: T, isArray: true): Input<T, true>;
+export function getInput<T extends InputEvmType>(
   type: T,
   isArray: boolean = false,
-): Input<N, T, boolean> {
-  return { name, type, isArray };
+): Input<T, boolean> {
+  return { type, isArray };
 }
 
 export function getOutput<T extends OutputEvmType = OutputEvmType>(type: T): Output<T>;
@@ -233,9 +252,9 @@ export function makeContractCreator<D extends GenericDescriptor>(_abi: any[], _d
             }) as Observable<any>;
           };
 
-          const callFunction: CallMethod = baseCallFunction;
+          const callFunction: CallMethod<any> = baseCallFunction;
 
-          const readFunction: ReadMethod = (
+          const readFunction: ReadMethod<any> = (
             input: void | Record<string, JSType | JSType[]>,
             tx: Tx,
             eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
@@ -258,7 +277,7 @@ export function makeContractCreator<D extends GenericDescriptor>(_abi: any[], _d
               return baseContract.methods[prop](...args);
             };
 
-            const sendFunction: SendMethod = attachStaticFields(
+            const sendFunction: SendMethod<any> = attachStaticFields(
               (input: void | Record<string, BN | string | boolean>, tx: Tx) => {
                 return getTransactionFunction(input).send(tx);
               },
@@ -304,10 +323,15 @@ export function attachStaticFields<T extends {}, I extends Record<string, any>>(
 }
 
 function convertInputValueToRequest(
-  type: InputEvmType,
-  value: JSType | JSType[],
+  type: InputEvmType | Input<InputEvmType, boolean>,
+  inputValue: JSType | JSType[],
 ): JSType | JSType[] {
-  return Array.isArray(value) ? value.map(toRequest[type] as any) : (toRequest[type] as any)(value);
+  function convert(value: JSType | JSType[]) {
+    return typeof type === 'string'
+      ? (toRequest[type] as any)(value)
+      : convertInputValueToRequest(type.type, value);
+  }
+  return Array.isArray(inputValue) ? inputValue.map(convert) : convert(inputValue);
 }
 
 function makeConvertFromResponse(output?: Output<OutputEvmType, boolean>[]) {

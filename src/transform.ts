@@ -6,6 +6,7 @@ import {
   FunctionDeclaration,
   EventDeclaration,
   AbiOutputParameter,
+  EvmType,
 } from 'typechain';
 
 export function transform(contract: Contract) {
@@ -18,11 +19,11 @@ export function transform(contract: Contract) {
   const sendMethods = methods.filter(m => m.stateMutability !== 'view');
 
   const template = `
-import { makeContractCreator, getOutput, getInput } from './utils/makeContractCreator';
+import * as utils from './utils/makeContractCreator';
 
 import ${name} from './abi/${contract.name}';
 
-export const create${Name} = makeContractCreator(
+export const create${Name} = utils.makeContractCreator(
   ${name} as any[],
   {
     callMethods: {
@@ -46,39 +47,59 @@ function generateFunction(fn: FunctionDeclaration): string {
     ${fn.name}: {
       ${
         fn.inputs.length
-          ? `inputs: [${fn.inputs.map(x => generateIO('input', x)).join(', ')}],`
+          ? `inputs: [${fn.inputs.map(x => generateNamedInput(x)).join(', ')}],`
           : ''
       }
-      ${fn.outputs[0] ? `output: [${fn.outputs.map(x => generateIO('output', x)).join(', ')}]` : ''}
+      ${fn.outputs[0] ? `output: [${fn.outputs.map(x => generateOutput(x)).join(', ')}]` : ''}
   },`;
 }
 
 function generateEvent(event: EventDeclaration) {
   return `
     ${event.name}: {
-      inputs: [${event.inputs.map(x => generateIO('input', x)).join(', ')}],
+      inputs: [${event.inputs.map(x => generateNamedInput(x)).join(', ')}],
     },
   `;
 }
 
-const ioFuncByType = {
-  input: 'getInput',
-  output: 'getOutput',
-};
-
-type ParamByIOType = {
-  input: AbiParameter;
-  output: AbiOutputParameter;
-};
-
-function generateIO<T extends 'input' | 'output'>(type: T, param: ParamByIOType[T]) {
+function generateNamedInput(param: AbiParameter) {
   const params: string[] = [
-    type === 'input' ? `'${param.name}'` : '',
+    `'${param.name}'`,
+    generateType(),
+    param.type.type === 'array' ? 'true' : '',
+  ].filter(Boolean);
+
+  return `utils.getNamedInput(${params.join(', ')})`;
+
+  function generateType() {
+    if (param.type.type !== 'array') {
+      return `'${param.type.type}'`;
+    }
+
+    if (param.type.itemType.type === 'array') {
+      return generateInput(param.type.itemType);
+    }
+
+    return `'${param.type.itemType.type}'`;
+  }
+}
+
+function generateInput(type: EvmType) {
+  const params: string[] = [
+    `'${type.type === 'array' ? type.itemType.type : type.type}'`,
+    type.type === 'array' ? 'true' : '',
+  ].filter(Boolean);
+
+  return `utils.getInput(${params.join(', ')})`;
+}
+
+function generateOutput(param: AbiOutputParameter) {
+  const params: string[] = [
     `'${param.type.type === 'array' ? param.type.itemType.type : param.type.type}'`,
     param.type.type === 'array' ? 'true' : '',
   ].filter(Boolean);
 
-  return `${ioFuncByType[type]}(${params.join(', ')})`;
+  return `utils.getOutput(${params.join(', ')})`;
 }
 
 // // eslint-disable-next-line consistent-return
