@@ -45,7 +45,7 @@ type MethodDescriptor = {
 };
 
 interface EventDescriptor {
-  inputs: readonly NamedInput[];
+  inputs: readonly NamedInput<string, InputEvmType | Input<InputEvmType, boolean>, boolean>[];
 }
 
 interface NamedInput<
