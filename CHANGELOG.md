@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 0.1.11 (2021-01-28)
+
+
+### Bug Fixes
+
+* [DD-1782] fix EventDescriptor type ([e626f6a](https://github.com/akropolisio/typechain-target-web3-rxjs/commit/e626f6a7e88f0421922cfa404aed7ef650cc6d9b))
+
 ### 0.1.10 (2021-01-22)
 
 ### 0.1.9 (2021-01-22)
