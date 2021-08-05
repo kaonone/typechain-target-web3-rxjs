@@ -70,7 +70,7 @@
     "prettier": "^1.19.1",
     "raw-loader": "^3.1.0",
     "rxjs": "^6.2.2",
-    "standard-version": "^7.0.1",
+    "standard-version": "^8.0.1",
     "ts-generator": "^0.0.8",
     "ts-jest": "^24.1.0",
     "ts-loader": "^6.2.1",
