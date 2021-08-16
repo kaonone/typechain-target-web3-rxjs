@@ -22,6 +22,8 @@ export interface Tx {
   value?: string | number;
   gas?: string | number;
   gasPrice?: string | number;
+  maxPriorityFeePerGas?: string | number;
+  maxFeePerGas?: string | number;
 }
 
 export type InputEvmTypeToJSTypeMap = {

@@ -80,7 +80,7 @@
     "typechain": "^1.0.3",
     "typescript": "^3.7.2",
     "uglify-js": "^3.6.8",
-    "web3": "^1.2.1",
+    "web3": "^1.5.2",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
   },
