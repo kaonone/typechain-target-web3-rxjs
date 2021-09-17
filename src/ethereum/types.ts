@@ -7,9 +7,9 @@ import {
 import BN from 'bn.js';
 import { O } from 'ts-toolbelt';
 
-export interface TransactionObject<T> {
+export interface TransactionObject {
   arguments: any[];
-  call(tx?: CallOptions): Promise<T>;
+  call(tx?: CallOptions): Promise<TransactionReceipt>;
   send: {
     (tx?: SendOptions): PromiEvent<TransactionReceipt>;
     request(

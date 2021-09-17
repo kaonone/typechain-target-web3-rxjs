@@ -119,7 +119,7 @@ type SendMethod<M extends MethodDescriptor = MethodDescriptor> = ((
   input: MaybeInputsToArgs<M['inputs']>,
   tx: SendOptions,
 ) => PromiEvent<TransactionReceipt>) & {
-  getTransaction(input: MaybeInputsToArgs<M['inputs']>): TransactionObject<TransactionReceipt>;
+  getTransaction(input: MaybeInputsToArgs<M['inputs']>): TransactionObject;
   read: ReadMethod<M>;
 };
 
