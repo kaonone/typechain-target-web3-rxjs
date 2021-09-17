@@ -1,5 +1,24 @@
-import { EventLog as Web3EventLog, TransactionReceipt } from 'web3-core';
+import {
+  EventLog as Web3EventLog,
+  TransactionReceipt,
+  PromiEvent,
+  TransactionConfig,
+} from 'web3-core';
 import BN from 'bn.js';
+import { O } from 'ts-toolbelt';
+
+export interface TransactionObject<T> {
+  arguments: any[];
+  call(tx?: CallOptions): Promise<T>;
+  send: {
+    (tx?: SendOptions): PromiEvent<TransactionReceipt>;
+    request(
+      options: Omit<SendOptions, 'to' | 'data'>,
+    ): { params: [TransactionConfig]; method: string };
+  };
+  estimateGas(tx?: SendOptions): Promise<number>;
+  encodeABI(): string;
+}
 
 export type EventLog<T> = Omit<Web3EventLog, 'returnValues'> & { returnValues: T };
 
@@ -13,12 +32,12 @@ export interface EventEmitter<T> {
   ): EventEmitter<T>;
 }
 
-export interface Tx {
+export type SendOptions = O.Required<CallOptions, 'from'>;
+
+export interface CallOptions {
   nonce?: string | number;
   chainId?: string | number;
   from?: string;
-  to?: string;
-  data?: string;
   value?: string | number;
   gas?: string | number;
   gasPrice?: string | number;

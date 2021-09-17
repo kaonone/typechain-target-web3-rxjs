@@ -4,7 +4,7 @@ import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
-import { EventEmitter, Tx, JSType } from './types';
+import { EventEmitter, CallOptions, JSType } from './types';
 
 interface IOptions<IV, RV> {
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
@@ -12,7 +12,7 @@ interface IOptions<IV, RV> {
   args?: Array<JSType | JSType[]>;
   convert?(value: IV): RV;
   updatingDelay?: number;
-  tx?: Tx;
+  tx?: CallOptions;
 }
 
 function identity(value: any) {

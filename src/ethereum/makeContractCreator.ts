@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { A, B, O } from 'ts-toolbelt';
+import { A, B } from 'ts-toolbelt';
 import BN from 'bn.js';
 import Web3 from 'web3';
 import { PromiEvent, TransactionReceipt } from 'web3-core';
@@ -8,7 +8,9 @@ import { Contract } from 'web3-eth-contract';
 import { getContractData$ } from './getContractData$';
 import {
   EventEmitter,
-  Tx as Web3TX,
+  SendOptions,
+  CallOptions,
+  TransactionObject,
   EventLog,
   InputEvmType,
   InputEvmTypeToJSTypeMap,
@@ -20,16 +22,6 @@ import {
 type BlockType = 'latest' | 'pending' | 'genesis' | number;
 
 type Callback<T> = (error: Error, result: T) => void;
-
-type Tx = O.Required<Web3TX, 'from'>;
-
-interface TransactionObject<T> {
-  arguments: any[];
-  call(tx?: Tx): Promise<T>;
-  send(tx?: Tx): PromiEvent<T>;
-  estimateGas(tx?: Tx): Promise<number>;
-  encodeABI(): string;
-}
 
 /* ***** */
 
@@ -112,19 +104,20 @@ type CallMethod<M extends MethodDescriptor = MethodDescriptor> = (
   input: MaybeInputsToArgs<M['inputs']>,
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
   updatingDelay?: number,
+  tx?: CallOptions,
 ) => Observable<MaybeOutputToResponse<NonNullable<M['output']>>>;
 
 // for read non view methods
 type ReadMethod<M extends MethodDescriptor = MethodDescriptor> = (
   input: MaybeInputsToArgs<M['inputs']>,
-  tx: Tx,
+  tx: SendOptions,
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
   updatingDelay?: number,
 ) => Observable<MaybeOutputToResponse<NonNullable<M['output']>>>;
 
 type SendMethod<M extends MethodDescriptor = MethodDescriptor> = ((
   input: MaybeInputsToArgs<M['inputs']>,
-  tx: Tx,
+  tx: SendOptions,
 ) => PromiEvent<TransactionReceipt>) & {
   getTransaction(input: MaybeInputsToArgs<M['inputs']>): TransactionObject<TransactionReceipt>;
   read: ReadMethod<M>;
@@ -239,7 +232,7 @@ export function makeContractCreator<D extends GenericDescriptor>(_abi: any[], _d
             input: void | Record<string, JSType | JSType[]>,
             eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
             updatingDelay?: number,
-            tx?: Tx,
+            tx?: CallOptions,
           ) => {
             return getContractData$(baseContract, web3.eth, prop, {
               tx,
@@ -256,7 +249,7 @@ export function makeContractCreator<D extends GenericDescriptor>(_abi: any[], _d
 
           const readFunction: ReadMethod<any> = (
             input: void | Record<string, JSType | JSType[]>,
-            tx: Tx,
+            tx: SendOptions,
             eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
             updatingDelay?: number,
           ) => baseCallFunction(input, eventsForReload, updatingDelay, tx);
@@ -278,7 +271,7 @@ export function makeContractCreator<D extends GenericDescriptor>(_abi: any[], _d
             };
 
             const sendFunction: SendMethod<any> = attachStaticFields(
-              (input: void | Record<string, BN | string | boolean>, tx: Tx) => {
+              (input: void | Record<string, BN | string | boolean>, tx: SendOptions) => {
                 return getTransactionFunction(input).send(tx);
               },
               {
