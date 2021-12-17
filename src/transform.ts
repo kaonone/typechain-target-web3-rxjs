@@ -10,7 +10,8 @@ import {
 } from 'typechain';
 
 export function transform(contract: Contract) {
-  const name = contract.name.split('.')[0];
+  const contractName = `${contract.name.slice(0, 1).toLowerCase()}${contract.name.slice(1)}`;
+  const name = contractName.split('.')[0];
   const Name = `${name.slice(0, 1).toUpperCase()}${name.slice(1)}`;
 
   const events = Object.values(contract.events).map(v => v[0]);
@@ -21,7 +22,7 @@ export function transform(contract: Contract) {
   const template = `
 import * as utils from './utils/makeContractCreator';
 
-import ${name} from './abi/${contract.name}';
+import ${name} from './abi/${contractName}';
 
 export const create${Name} = utils.makeContractCreator(
   ${name} as any[],
@@ -57,7 +58,7 @@ function generateFunction(fn: FunctionDeclaration): string {
 function generateEvent(event: EventDeclaration) {
   return `
     ${event.name}: {
-      inputs: [${event.inputs.map(x => generateNamedInput(x)).join(', ')}],
+      inputs: [${event.inputs.map(x => generateNamedInput(x as any)).join(', ')}],
     },
   `;
 }

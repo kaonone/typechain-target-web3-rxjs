@@ -1,0 +1,258 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transform should do anything 1`] = `
+Object {
+  "contract": Object {
+    "constructor": Array [],
+    "documentation": undefined,
+    "events": Object {},
+    "fallback": undefined,
+    "functions": Object {
+      "testRead": Array [
+        Object {
+          "documentation": undefined,
+          "inputs": Array [
+            Object {
+              "name": "s",
+              "type": Object {
+                "components": Array [
+                  Object {
+                    "name": "a",
+                    "type": Object {
+                      "bits": 256,
+                      "originalType": "uint256",
+                      "type": "uinteger",
+                    },
+                  },
+                  Object {
+                    "name": "b",
+                    "type": Object {
+                      "itemType": Object {
+                        "bits": 256,
+                        "originalType": "uint256",
+                        "type": "uinteger",
+                      },
+                      "originalType": "uint256[]",
+                      "type": "array",
+                    },
+                  },
+                  Object {
+                    "name": "c",
+                    "type": Object {
+                      "itemType": Object {
+                        "components": Array [
+                          Object {
+                            "name": "x",
+                            "type": Object {
+                              "bits": 256,
+                              "originalType": "uint256",
+                              "type": "uinteger",
+                            },
+                          },
+                          Object {
+                            "name": "y",
+                            "type": Object {
+                              "bits": 256,
+                              "originalType": "uint256",
+                              "type": "uinteger",
+                            },
+                          },
+                        ],
+                        "originalType": "tuple",
+                        "type": "tuple",
+                      },
+                      "originalType": "tuple[]",
+                      "type": "array",
+                    },
+                  },
+                ],
+                "originalType": "tuple",
+                "type": "tuple",
+              },
+            },
+            Object {
+              "name": "t",
+              "type": Object {
+                "components": Array [
+                  Object {
+                    "name": "x",
+                    "type": Object {
+                      "bits": 256,
+                      "originalType": "uint256",
+                      "type": "uinteger",
+                    },
+                  },
+                  Object {
+                    "name": "y",
+                    "type": Object {
+                      "bits": 256,
+                      "originalType": "uint256",
+                      "type": "uinteger",
+                    },
+                  },
+                ],
+                "originalType": "tuple",
+                "type": "tuple",
+              },
+            },
+            Object {
+              "name": "a",
+              "type": Object {
+                "bits": 256,
+                "originalType": "uint256",
+                "type": "uinteger",
+              },
+            },
+          ],
+          "name": "testRead",
+          "outputs": Array [
+            Object {
+              "name": "",
+              "type": Object {
+                "type": "void",
+              },
+            },
+          ],
+          "stateMutability": "view",
+        },
+      ],
+      "testSend": Array [
+        Object {
+          "documentation": undefined,
+          "inputs": Array [
+            Object {
+              "name": "s",
+              "type": Object {
+                "components": Array [
+                  Object {
+                    "name": "a",
+                    "type": Object {
+                      "bits": 256,
+                      "originalType": "uint256",
+                      "type": "uinteger",
+                    },
+                  },
+                  Object {
+                    "name": "b",
+                    "type": Object {
+                      "itemType": Object {
+                        "bits": 256,
+                        "originalType": "uint256",
+                        "type": "uinteger",
+                      },
+                      "originalType": "uint256[]",
+                      "type": "array",
+                    },
+                  },
+                  Object {
+                    "name": "c",
+                    "type": Object {
+                      "itemType": Object {
+                        "components": Array [
+                          Object {
+                            "name": "x",
+                            "type": Object {
+                              "bits": 256,
+                              "originalType": "uint256",
+                              "type": "uinteger",
+                            },
+                          },
+                          Object {
+                            "name": "y",
+                            "type": Object {
+                              "bits": 256,
+                              "originalType": "uint256",
+                              "type": "uinteger",
+                            },
+                          },
+                        ],
+                        "originalType": "tuple",
+                        "type": "tuple",
+                      },
+                      "originalType": "tuple[]",
+                      "type": "array",
+                    },
+                  },
+                ],
+                "originalType": "tuple",
+                "type": "tuple",
+              },
+            },
+            Object {
+              "name": "t",
+              "type": Object {
+                "components": Array [
+                  Object {
+                    "name": "x",
+                    "type": Object {
+                      "bits": 256,
+                      "originalType": "uint256",
+                      "type": "uinteger",
+                    },
+                  },
+                  Object {
+                    "name": "y",
+                    "type": Object {
+                      "bits": 256,
+                      "originalType": "uint256",
+                      "type": "uinteger",
+                    },
+                  },
+                ],
+                "originalType": "tuple",
+                "type": "tuple",
+              },
+            },
+            Object {
+              "name": "a",
+              "type": Object {
+                "bits": 256,
+                "originalType": "uint256",
+                "type": "uinteger",
+              },
+            },
+          ],
+          "name": "testSend",
+          "outputs": Array [
+            Object {
+              "name": "",
+              "type": Object {
+                "originalType": "bool",
+                "type": "boolean",
+              },
+            },
+          ],
+          "stateMutability": "nonpayable",
+        },
+      ],
+    },
+    "name": "Test",
+    "rawName": "test",
+    "structs": Object {
+      "undefined": Array [
+        Object {
+          "itemType": Object {
+            "bits": 256,
+            "originalType": "uint256",
+            "type": "uinteger",
+          },
+          "originalType": "uint256[]",
+          "type": "array",
+        },
+      ],
+    },
+  },
+  "result": "
+import * as utils from './utils/makeContractCreator';
+import { ContractWrapper } from './utils/types';
+
+import test from './abi/test';
+
+export const createTest = utils.makeContractCreator<>(test as any[]);
+
+interface TestContract extends ContractWrapper {
+  
+}
+  ",
+}
+`;

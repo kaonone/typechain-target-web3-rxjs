@@ -1,8 +1,15 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/no-default-export */
-import { TsGeneratorPlugin, TContext, TFileDesc } from 'ts-generator';
 import { join, resolve } from 'path';
-import { extractAbi, parse, getFilename } from 'typechain';
+import {
+  extractAbi,
+  parse,
+  getFilename,
+  Config,
+  TypeChainTarget,
+  Output,
+  FileDescription,
+} from 'typechain';
 
 // @ts-ignore
 import fromWeb3DataEvent from './ethereum/fromWeb3DataEvent';
@@ -14,27 +21,23 @@ import makeContractCreator from './ethereum/makeContractCreator';
 import types from './ethereum/types';
 import { transform } from './transform';
 
-export interface IWeb3Cfg {
-  outDir?: string;
-}
-
 const DEFAULT_OUT_PATH = './generated/';
 
-export default class Web3 extends TsGeneratorPlugin {
+export default class Web3 extends TypeChainTarget {
   name = 'Web3';
 
   private readonly outDirAbs: string;
   private readonly creatorNames: string[] = [];
 
-  constructor(ctx: TContext<IWeb3Cfg>) {
+  constructor(ctx: Config) {
     super(ctx);
 
-    const { cwd, rawConfig } = ctx;
+    const { cwd, outDir } = ctx;
 
-    this.outDirAbs = resolve(cwd, rawConfig.outDir || DEFAULT_OUT_PATH);
+    this.outDirAbs = resolve(cwd, outDir || DEFAULT_OUT_PATH);
   }
 
-  transformFile(file: TFileDesc): TFileDesc[] | undefined {
+  transformFile(file: FileDescription): Output | Promise<Output> {
     const abi = extractAbi(file.contents);
     const isEmptyAbi = abi.length === 0;
 
@@ -59,12 +62,12 @@ export default class Web3 extends TsGeneratorPlugin {
       },
       {
         path: join(this.outDirAbs, `abi/${fullName}.ts`),
-        contents: `export default ${file.contents}`,
+        contents: `export default ${abi}`,
       },
     ];
   }
 
-  afterRun(): TFileDesc[] {
+  afterRun(): Output | Promise<Output> {
     return [
       {
         path: join(this.outDirAbs, 'utils/fromWeb3DataEvent.ts'),

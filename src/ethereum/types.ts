@@ -4,8 +4,17 @@ import {
   PromiEvent,
   TransactionConfig,
 } from 'web3-core';
+import { Contract } from 'web3-eth-contract';
 import BN from 'bn.js';
 import { O } from 'ts-toolbelt';
+
+export interface ContractWrapper {
+  methods: (...args: any[]) => unknown;
+  events: {
+    allEvents: Contract['events']['allEvents'];
+  };
+  getPastEvents: Contract['getPastEvents'];
+}
 
 export interface TransactionObject {
   arguments: any[];
