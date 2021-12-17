@@ -7,6 +7,10 @@ import DtsBundleWebpack from 'dts-bundle-webpack';
 const config: webpack.Configuration = {
   mode: 'production',
   target: 'node',
+  node: {
+    __dirname: false,
+    __filename: false,
+  },
   context: path.resolve(__dirname, '..', 'src'),
   entry: path.resolve(__dirname, '..', 'src', 'index.ts'),
   output: {
@@ -26,7 +30,6 @@ const config: webpack.Configuration = {
       {
         test: {
           include: /\.tsx?$/,
-          exclude: /ethereum\/.+?\.ts$/,
         },
         use: {
           loader: 'ts-loader',
@@ -34,10 +37,6 @@ const config: webpack.Configuration = {
             logLevel: 'error',
           },
         },
-      },
-      {
-        test: /ethereum\/.+?\.ts$/,
-        use: 'raw-loader',
       },
     ],
   },

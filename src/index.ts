@@ -1,40 +1,35 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/no-default-export */
-import { TsGeneratorPlugin, TContext, TFileDesc } from 'ts-generator';
-import { join, resolve } from 'path';
-import { extractAbi, parse, getFilename } from 'typechain';
+import { readdirSync, readFileSync } from 'fs';
+import { join, relative, resolve } from 'path';
+import {
+  extractAbi,
+  parse,
+  getFilename,
+  Config,
+  TypeChainTarget,
+  Output,
+  FileDescription,
+} from 'typechain';
 
-// @ts-ignore
-import fromWeb3DataEvent from './ethereum/fromWeb3DataEvent';
-// @ts-ignore
-import getContractData$ from './ethereum/getContractData$';
-// @ts-ignore
-import makeContractCreator from './ethereum/makeContractCreator';
-// @ts-ignore
-import types from './ethereum/types';
 import { transform } from './transform';
-
-export interface IWeb3Cfg {
-  outDir?: string;
-}
 
 const DEFAULT_OUT_PATH = './generated/';
 
-export default class Web3 extends TsGeneratorPlugin {
+export default class Web3 extends TypeChainTarget {
   name = 'Web3';
 
   private readonly outDirAbs: string;
   private readonly creatorNames: string[] = [];
 
-  constructor(ctx: TContext<IWeb3Cfg>) {
+  constructor(ctx: Config) {
     super(ctx);
 
-    const { cwd, rawConfig } = ctx;
+    const { cwd, outDir } = ctx;
 
-    this.outDirAbs = resolve(cwd, rawConfig.outDir || DEFAULT_OUT_PATH);
+    this.outDirAbs = resolve(cwd, outDir || DEFAULT_OUT_PATH);
   }
 
-  transformFile(file: TFileDesc): TFileDesc[] | undefined {
+  transformFile(file: FileDescription): Output | Promise<Output> {
     const abi = extractAbi(file.contents);
     const isEmptyAbi = abi.length === 0;
 
@@ -64,28 +59,25 @@ export default class Web3 extends TsGeneratorPlugin {
     ];
   }
 
-  afterRun(): TFileDesc[] {
+  afterRun() {
+    const walkSync = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true, encoding: 'utf-8' }).reduce((acc, curr) => {
+        const absolute = join(dir, curr.name);
+        const files = curr.isDirectory() ? walkSync(absolute) : [absolute];
+        return acc.concat(files);
+      }, [] as string[]);
+
+    const ethereumPath = join(__dirname, '../src/ethereum/');
+
     return [
-      {
-        path: join(this.outDirAbs, 'utils/fromWeb3DataEvent.ts'),
-        contents: fromWeb3DataEvent,
-      },
-      {
-        path: join(this.outDirAbs, 'utils/getContractData$.ts'),
-        contents: getContractData$,
-      },
-      {
-        path: join(this.outDirAbs, 'utils/makeContractCreator.ts'),
-        contents: makeContractCreator,
-      },
-      {
-        path: join(this.outDirAbs, 'utils/types.ts'),
-        contents: types,
-      },
       {
         path: join(this.outDirAbs, 'index.ts'),
         contents: this.creatorNames.map(name => `export { ${name} } from './${name}'`).join('\n'),
       },
+      ...walkSync(ethereumPath).map(file => ({
+        path: join(this.outDirAbs, 'utils', relative(ethereumPath, file)),
+        contents: readFileSync(file, 'utf-8'),
+      })),
     ];
   }
 }

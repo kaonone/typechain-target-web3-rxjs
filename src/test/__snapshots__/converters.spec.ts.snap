@@ -1,0 +1,129 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`inputsToRequest should convert an object of arguments to an array of web3.js arguments 1`] = `
+Object {
+  "args": Object {
+    "a": Object {
+      "x": "0a4cc799563c380000",
+      "y": "0x00",
+      "z": true,
+    },
+  },
+  "result": Array [
+    Array [
+      "190000000000000000000",
+      "0x00",
+      true,
+    ],
+  ],
+}
+`;
+
+exports[`inputsToRequest should support arrays of plain arguments 1`] = `
+Object {
+  "args": Object {
+    "a": Array [
+      "0a4cc799563c380000",
+      "0b6255df5f50080000",
+    ],
+    "b": "0x00",
+  },
+  "result": Array [
+    Array [
+      "190000000000000000000",
+      "210000000000000000000",
+    ],
+    "0x00",
+  ],
+}
+`;
+
+exports[`inputsToRequest should support arrays of tuples 1`] = `
+Object {
+  "args": Object {
+    "a": Array [
+      Object {
+        "x": "0a4cc799563c380000",
+        "y": "text1",
+      },
+      Object {
+        "x": "0b6255df5f50080000",
+        "y": "text2",
+      },
+    ],
+    "b": "text3",
+  },
+  "result": Array [
+    Array [
+      Array [
+        "190000000000000000000",
+        "text1",
+      ],
+      Array [
+        "210000000000000000000",
+        "text2",
+      ],
+    ],
+    "text3",
+  ],
+}
+`;
+
+exports[`inputsToRequest should throw an error when args mismatch ABI 1`] = `"ABI parameter a not found in [object Object]"`;
+
+exports[`responseToOutput should return an array of result parameters when ABI length is greater than 1 1`] = `
+Object {
+  "response": Array [
+    "0x00",
+    Array [
+      Array [
+        "190000000000000000000",
+        "210000000000000000000",
+      ],
+    ],
+  ],
+  "result": Array [
+    "0x00",
+    Array [
+      Array [
+        "0a4cc799563c380000",
+        "0b6255df5f50080000",
+      ],
+    ],
+  ],
+}
+`;
+
+exports[`responseToOutput should return an array of tuple components when ABI length equals 1 1`] = `
+Object {
+  "response": Array [
+    Array [
+      "190000000000000000000",
+      "0x00",
+      true,
+    ],
+  ],
+  "result": Array [
+    "0a4cc799563c380000",
+    "0x00",
+    true,
+  ],
+}
+`;
+
+exports[`responseToOutput should support unnamed parameters 1`] = `
+Object {
+  "response": Array [
+    "190000000000000000000",
+    "0x00",
+  ],
+  "result": Array [
+    "0a4cc799563c380000",
+    "0x00",
+  ],
+}
+`;
+
+exports[`responseToOutput should throw an error when response mismatches ABI 1`] = `"ABI parameter  not found in 190000000000000000000"`;
+
+exports[`responseToOutput should throw an error when response received for empty ABI 1`] = `"Received response 190000000000000000000,0x00 for empty ABI declaration"`;
