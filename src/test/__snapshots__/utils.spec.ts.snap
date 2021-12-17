@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getWeb3Signature should support tuple and tuple[] types 1`] = `
+Array [
+  "testRead((bool,address[],(uint256,uint256)[]),(bytes,string),uint256)",
+  "testRead()",
+  "testSend((uint256,uint256[],(uint256,uint256)[]),(uint256,uint256),uint256)",
+  "Event1(uint256,bytes32)",
+  "Event1(uint256,(uint256,uint256)[])",
+  "Event2(uint256,bytes32)",
+]
+`;

@@ -5,7 +5,105 @@ Object {
   "contract": Object {
     "constructor": Array [],
     "documentation": undefined,
-    "events": Object {},
+    "events": Object {
+      "Event1": Array [
+        Object {
+          "inputs": Array [
+            Object {
+              "isIndexed": true,
+              "name": "b",
+              "type": Object {
+                "bits": 256,
+                "originalType": "uint256",
+                "type": "uinteger",
+              },
+            },
+            Object {
+              "isIndexed": false,
+              "name": "c",
+              "type": Object {
+                "originalType": "bytes32",
+                "size": 32,
+                "type": "bytes",
+              },
+            },
+          ],
+          "isAnonymous": false,
+          "name": "Event1",
+        },
+        Object {
+          "inputs": Array [
+            Object {
+              "isIndexed": true,
+              "name": "b",
+              "type": Object {
+                "bits": 256,
+                "originalType": "uint256",
+                "type": "uinteger",
+              },
+            },
+            Object {
+              "isIndexed": false,
+              "name": "c",
+              "type": Object {
+                "itemType": Object {
+                  "components": Array [
+                    Object {
+                      "name": "x",
+                      "type": Object {
+                        "bits": 256,
+                        "originalType": "uint256",
+                        "type": "uinteger",
+                      },
+                    },
+                    Object {
+                      "name": "y",
+                      "type": Object {
+                        "bits": 256,
+                        "originalType": "uint256",
+                        "type": "uinteger",
+                      },
+                    },
+                  ],
+                  "originalType": "tuple",
+                  "type": "tuple",
+                },
+                "originalType": "tuple[]",
+                "type": "array",
+              },
+            },
+          ],
+          "isAnonymous": false,
+          "name": "Event1",
+        },
+      ],
+      "Event2": Array [
+        Object {
+          "inputs": Array [
+            Object {
+              "isIndexed": true,
+              "name": "b",
+              "type": Object {
+                "bits": 256,
+                "originalType": "uint256",
+                "type": "uinteger",
+              },
+            },
+            Object {
+              "isIndexed": false,
+              "name": "c",
+              "type": Object {
+                "originalType": "bytes32",
+                "size": 32,
+                "type": "bytes",
+              },
+            },
+          ],
+          "isAnonymous": false,
+          "name": "Event2",
+        },
+      ],
+    },
     "fallback": undefined,
     "functions": Object {
       "testRead": Array [
@@ -19,20 +117,18 @@ Object {
                   Object {
                     "name": "a",
                     "type": Object {
-                      "bits": 256,
-                      "originalType": "uint256",
-                      "type": "uinteger",
+                      "originalType": "bool",
+                      "type": "boolean",
                     },
                   },
                   Object {
                     "name": "b",
                     "type": Object {
                       "itemType": Object {
-                        "bits": 256,
-                        "originalType": "uint256",
-                        "type": "uinteger",
+                        "originalType": "address",
+                        "type": "address",
                       },
-                      "originalType": "uint256[]",
+                      "originalType": "address[]",
                       "type": "array",
                     },
                   },
@@ -77,17 +173,15 @@ Object {
                   Object {
                     "name": "x",
                     "type": Object {
-                      "bits": 256,
-                      "originalType": "uint256",
-                      "type": "uinteger",
+                      "originalType": "bytes",
+                      "type": "dynamic-bytes",
                     },
                   },
                   Object {
                     "name": "y",
                     "type": Object {
-                      "bits": 256,
-                      "originalType": "uint256",
-                      "type": "uinteger",
+                      "originalType": "string",
+                      "type": "string",
                     },
                   },
                 ],
@@ -109,7 +203,38 @@ Object {
             Object {
               "name": "",
               "type": Object {
-                "type": "void",
+                "originalType": "address",
+                "type": "address",
+              },
+            },
+            Object {
+              "name": "Test",
+              "type": Object {
+                "originalType": "address",
+                "type": "address",
+              },
+            },
+            Object {
+              "name": "",
+              "type": Object {
+                "originalType": "bool",
+                "type": "boolean",
+              },
+            },
+          ],
+          "stateMutability": "view",
+        },
+        Object {
+          "documentation": undefined,
+          "inputs": Array [],
+          "name": "testRead",
+          "outputs": Array [
+            Object {
+              "name": "",
+              "type": Object {
+                "bits": 256,
+                "originalType": "uint256",
+                "type": "uinteger",
               },
             },
           ],
@@ -232,11 +357,10 @@ Object {
       "undefined": Array [
         Object {
           "itemType": Object {
-            "bits": 256,
-            "originalType": "uint256",
-            "type": "uinteger",
+            "originalType": "address",
+            "type": "address",
           },
-          "originalType": "uint256[]",
+          "originalType": "address[]",
           "type": "array",
         },
       ],
@@ -251,7 +375,112 @@ import test from './abi/test';
 export const createTest = utils.makeContractCreator<>(test as any[]);
 
 interface TestContract extends ContractWrapper {
-  
+  methods: {
+    testRead: CallMethod<{
+    s: {
+    a: boolean;
+b: (string)[];
+c: ({
+    x: BN;
+y: BN
+  })[]
+  };
+t: {
+    x: string;
+y: string
+  };
+a: BN
+  }, {
+      Test: string;
+
+      0: string;
+1: string;
+2: boolean
+    }>;
+'testRead((bool,address[],(uint256,uint256)[]),(bytes,string),uint256)': CallMethod<{
+    s: {
+    a: boolean;
+b: (string)[];
+c: ({
+    x: BN;
+y: BN
+  })[]
+  };
+t: {
+    x: string;
+y: string
+  };
+a: BN
+  }, {
+      Test: string;
+
+      0: string;
+1: string;
+2: boolean
+    }>;
+'testRead()': CallMethod<void, BN>;
+testSend: SendMethod<{
+    s: {
+    a: BN;
+b: (BN)[];
+c: ({
+    x: BN;
+y: BN
+  })[]
+  };
+t: {
+    x: BN;
+y: BN
+  };
+a: BN
+  }, boolean>;
+  };
+  events: {
+    Event1: EventMethod<
+    {
+    b: BN;
+c: string
+  },
+    {
+    b: BN
+  }
+  >
+'Event1(uint256,bytes32)': EventMethod<
+    {
+    b: BN;
+c: string
+  },
+    {
+    b: BN
+  }
+  >
+'Event1(uint256,(uint256,uint256)[])': EventMethod<
+    {
+    b: BN;
+c: ({
+    x: BN;
+y: BN
+  })[]
+  },
+    {
+    b: BN
+  }
+  >
+Event2: EventMethod<
+    {
+    b: BN;
+c: string
+  },
+    {
+    b: BN
+  }
+  >
+  };
+  getPastEvents: {
+    Event1;
+Event1;
+Event2
+  };
 }
   ",
 }

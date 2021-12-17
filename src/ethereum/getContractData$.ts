@@ -1,17 +1,16 @@
 import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
-import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from 'rxjs/operators';
+import { skipUntil, mergeMap, throttleTime, switchMap, shareReplay } from 'rxjs/operators';
 import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
-import { EventEmitter, CallOptions, JSType } from './types';
+import { EventEmitter, CallOptions, Web3ContractInputArgs } from './types';
 
 interface IOptions<IV, RV> {
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
   reloadTrigger$?: Observable<any>;
-  args?: Array<JSType | JSType[]>;
+  args?: Web3ContractInputArgs;
   convert?(value: IV): RV;
-  updatingDelay?: number;
   tx?: CallOptions;
 }
 
@@ -29,13 +28,7 @@ export function getContractData$<IV, RV>(
   method: string,
   options: IOptions<IV, RV> = {},
 ): Observable<RV> {
-  const {
-    eventsForReload = [],
-    reloadTrigger$ = empty(),
-    args = [],
-    convert = identity,
-    updatingDelay = 0,
-  } = options;
+  const { eventsForReload = [], reloadTrigger$ = empty(), args = [], convert = identity } = options;
 
   const load = async () => {
     const data = await contract.methods[method](...args).call(options.tx);
@@ -48,7 +41,6 @@ export function getContractData$<IV, RV>(
   const fromEvents$ = merge(...emitters.map(emitter => fromWeb3DataEvent(emitter))).pipe(
     skipUntil(first$),
     throttleTime(200),
-    delay(updatingDelay),
     switchMap(async event => {
       let currentBlock = await eth.getBlockNumber();
 
