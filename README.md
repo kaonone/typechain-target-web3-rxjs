@@ -11,7 +11,7 @@ npm install --save-dev typechain typechain-target-web3-rxjs
 ## How to use it
 
 ```
-npx typechain --target web3-rxjs --outDir src/generated/contracts **/*.abi.json
+npx typechain --target web3-rxjs --out-dir src/generated/contracts **/*.abi.json
 ```
 
 After calling this command you can get access to all factories from `src/generated/contracts/index.ts`

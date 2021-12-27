@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transform should throw error when unknown input type occurs 1`] = `"Unhandled type while code generation: NotSupported"`;
+
+exports[`transform should throw error when unknown output type occurs 1`] = `"Unhandled type while code generation: NotSupported"`;

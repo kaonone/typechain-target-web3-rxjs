@@ -1,17 +1,22 @@
-import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
-import { skipUntil, mergeMap, throttleTime, delay, switchMap, shareReplay } from 'rxjs/operators';
+import { Observable, from, merge, EMPTY, ReplaySubject } from 'rxjs';
+import { skipUntil, mergeMap, throttleTime, switchMap, shareReplay } from 'rxjs/operators';
 import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 
 import { fromWeb3DataEvent } from './fromWeb3DataEvent';
-import { EventEmitter, CallOptions, JSType } from './types';
+import {
+  EventEmitter,
+  CallOptions,
+  Web3ContractInputArgs,
+  Web3ContractResponse,
+  Response,
+} from './types';
 
-interface IOptions<IV, RV> {
+interface IOptions {
   eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
   reloadTrigger$?: Observable<any>;
-  args?: Array<JSType | JSType[]>;
-  convert?(value: IV): RV;
-  updatingDelay?: number;
+  args?: Web3ContractInputArgs;
+  convert?(value: Web3ContractResponse): Response | void;
   tx?: CallOptions;
 }
 
@@ -23,19 +28,13 @@ function awaitMs(delayMs: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, delayMs));
 }
 
-export function getContractData$<IV, RV>(
+export function getContractData$(
   contract: Contract,
   eth: Eth,
   method: string,
-  options: IOptions<IV, RV> = {},
-): Observable<RV> {
-  const {
-    eventsForReload = [],
-    reloadTrigger$ = empty(),
-    args = [],
-    convert = identity,
-    updatingDelay = 0,
-  } = options;
+  options: IOptions = {},
+): Observable<Response> {
+  const { eventsForReload = [], reloadTrigger$ = EMPTY, args = [], convert = identity } = options;
 
   const load = async () => {
     const data = await contract.methods[method](...args).call(options.tx);
@@ -48,7 +47,6 @@ export function getContractData$<IV, RV>(
   const fromEvents$ = merge(...emitters.map(emitter => fromWeb3DataEvent(emitter))).pipe(
     skipUntil(first$),
     throttleTime(200),
-    delay(updatingDelay),
     switchMap(async event => {
       let currentBlock = await eth.getBlockNumber();
 
@@ -65,7 +63,7 @@ export function getContractData$<IV, RV>(
     shareReplay(1),
   );
 
-  const subject = new ReplaySubject<RV>(1);
+  const subject = new ReplaySubject<Response>(1);
 
   merge(first$, fromEvents$, reloadTrigger$).subscribe(subject);
 

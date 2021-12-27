@@ -7,7 +7,8 @@
   "scripts": {
     "node": "node --max_old_space_size=4096 ./node_modules/.bin/cross-env TS_NODE_PROJECT=\"webpack/tsconfig.json\"",
     "build": "npm run node -- webpack --config webpack/prod.ts",
-    "test": "jest",
+    "test": "yarn codegen && yarn lint && jest",
+    "codegen": "rm -rf ./src/test/generated/ && yarn build && yarn typechain --target=./lib/index.js --out-dir ./src/test/generated/ './src/test/**/*.json'",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx && tsc --noEmit --pretty --incremental false",
     "lint:autofix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
   },
@@ -68,16 +69,15 @@
     "husky": "^3.1.0",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
-    "raw-loader": "^3.1.0",
     "rxjs": "^6.2.2",
     "standard-version": "^8.0.1",
-    "ts-generator": "^0.0.8",
+    "ts-generator": "^0.1.1",
     "ts-jest": "^24.1.0",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.5.2",
     "ts-toolbelt": "^4.10.7",
     "tsconfig-paths": "^3.9.0",
-    "typechain": "^1.0.3",
+    "typechain": "^6.0.5",
     "typescript": "^3.7.2",
     "uglify-js": "^3.6.8",
     "web3": "^1.5.2",
@@ -85,8 +85,8 @@
     "webpack-cli": "^3.3.10"
   },
   "peerDependencies": {
-    "ts-generator": "^0.0.8",
-    "typechain": "^1.0.0"
+    "ts-generator": "^0.1.1",
+    "typechain": "^6.0.5"
   },
   "dependencies": {}
 }

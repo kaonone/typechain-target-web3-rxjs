@@ -1,0 +1,208 @@
+[
+  {
+    "name": "testRead",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "name": "testRead",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "a",
+            "type": "bool"
+          },
+          {
+            "name": "b",
+            "type": "address[2]"
+          },
+          {
+            "name": "c",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "x",
+                "type": "uint256"
+              },
+              {
+                "name": "y",
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "t",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "x",
+            "type": "bytes"
+          },
+          {
+            "name": "y",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "a",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "components": [
+          {
+            "name": "a",
+            "type": "uint256"
+          },
+          {
+            "name": "b",
+            "type": "uint256[2]"
+          },
+          {
+            "components": [
+              {
+                "name": "x",
+                "type": "uint256"
+              },
+              {
+                "name": "y",
+                "type": "uint256"
+              }
+            ],
+            "name": "c",
+            "type": "tuple[]"
+          }
+        ],
+        "name": "",
+        "type": "tuple"
+      }
+    ]
+  },
+  {
+    "name": "testSend",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "a",
+            "type": "uint256"
+          },
+          {
+            "name": "b",
+            "type": "uint256[]"
+          },
+          {
+            "name": "c",
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "x",
+                "type": "uint256"
+              },
+              {
+                "name": "y",
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "t",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "x",
+            "type": "uint256"
+          },
+          {
+            "name": "y",
+            "type": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "a",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Event1",
+    "inputs": [],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Event1",
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "b",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "c",
+        "type": "tuple[]",
+        "components": [
+          {
+            "name": "x",
+            "type": "uint256"
+          },
+          {
+            "name": "y",
+            "type": "uint256"
+          }
+        ]
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Event2",
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "b",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "c",
+        "type": "bytes32"
+      }
+    ],
+    "anonymous": false
+  }
+]

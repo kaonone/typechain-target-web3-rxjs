@@ -1,0 +1,180 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`extractAbiMethod should return ABI for overloaded method 1`] = `
+Object {
+  "method": "testRead((bool,address[2],(uint256,uint256)[]),(bytes,string),uint256)",
+  "result": Object {
+    "inputs": Array [
+      Object {
+        "components": Array [
+          Object {
+            "name": "a",
+            "type": "bool",
+          },
+          Object {
+            "name": "b",
+            "type": "address[2]",
+          },
+          Object {
+            "components": Array [
+              Object {
+                "name": "x",
+                "type": "uint256",
+              },
+              Object {
+                "name": "y",
+                "type": "uint256",
+              },
+            ],
+            "name": "c",
+            "type": "tuple[]",
+          },
+        ],
+        "name": "s",
+        "type": "tuple",
+      },
+      Object {
+        "components": Array [
+          Object {
+            "name": "x",
+            "type": "bytes",
+          },
+          Object {
+            "name": "y",
+            "type": "string",
+          },
+        ],
+        "name": "t",
+        "type": "tuple",
+      },
+      Object {
+        "name": "a",
+        "type": "uint256",
+      },
+    ],
+    "name": "testRead",
+    "outputs": Array [
+      Object {
+        "components": Array [
+          Object {
+            "name": "a",
+            "type": "uint256",
+          },
+          Object {
+            "name": "b",
+            "type": "uint256[2]",
+          },
+          Object {
+            "components": Array [
+              Object {
+                "name": "x",
+                "type": "uint256",
+              },
+              Object {
+                "name": "y",
+                "type": "uint256",
+              },
+            ],
+            "name": "c",
+            "type": "tuple[]",
+          },
+        ],
+        "name": "",
+        "type": "tuple",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+}
+`;
+
+exports[`extractAbiMethod should return ABI for simple method 1`] = `
+Object {
+  "method": "testSend",
+  "result": Object {
+    "inputs": Array [
+      Object {
+        "components": Array [
+          Object {
+            "name": "a",
+            "type": "uint256",
+          },
+          Object {
+            "name": "b",
+            "type": "uint256[]",
+          },
+          Object {
+            "components": Array [
+              Object {
+                "name": "x",
+                "type": "uint256",
+              },
+              Object {
+                "name": "y",
+                "type": "uint256",
+              },
+            ],
+            "name": "c",
+            "type": "tuple[]",
+          },
+        ],
+        "name": "s",
+        "type": "tuple",
+      },
+      Object {
+        "components": Array [
+          Object {
+            "name": "x",
+            "type": "uint256",
+          },
+          Object {
+            "name": "y",
+            "type": "uint256",
+          },
+        ],
+        "name": "t",
+        "type": "tuple",
+      },
+      Object {
+        "name": "a",
+        "type": "uint256",
+      },
+    ],
+    "name": "testSend",
+    "outputs": Array [
+      Object {
+        "name": "",
+        "type": "bool",
+      },
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+  },
+}
+`;
+
+exports[`extractAbiMethod should return first ABI for overloaded methods if simple name used 1`] = `
+Object {
+  "method": "testRead",
+  "result": Object {
+    "inputs": Array [],
+    "name": "testRead",
+    "outputs": Array [
+      Object {
+        "name": "",
+        "type": "uint256",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+}
+`;
+
+exports[`extractAbiMethod should return null when method not found 1`] = `
+Object {
+  "method": "unknownMethod",
+  "result": null,
+}
+`;

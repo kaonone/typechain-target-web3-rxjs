@@ -1,0 +1,237 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`inputsToRequest should convert an object of arguments to an array of web3.js arguments 1`] = `
+Object {
+  "args": Object {
+    "a": Object {
+      "x": Array [
+        Object {
+          "p": Array [
+            "0x00",
+            "0x00",
+          ],
+          "t": Array [
+            "string",
+            "string",
+          ],
+        },
+        Object {
+          "p": Array [
+            "0x00",
+            "0x00",
+          ],
+          "t": Array [
+            "string",
+            "string",
+          ],
+        },
+      ],
+      "y": Array [
+        "0a4cc799563c380000",
+        "0b6255df5f50080000",
+      ],
+      "z": Array [
+        true,
+        false,
+        true,
+      ],
+    },
+  },
+  "result": Array [
+    Array [
+      Array [
+        Array [
+          Array [
+            "string",
+            "string",
+          ],
+          Array [
+            "0x00",
+            "0x00",
+          ],
+        ],
+        Array [
+          Array [
+            "string",
+            "string",
+          ],
+          Array [
+            "0x00",
+            "0x00",
+          ],
+        ],
+      ],
+      Array [
+        "190000000000000000000",
+        "210000000000000000000",
+      ],
+      Array [
+        true,
+        false,
+        true,
+      ],
+    ],
+  ],
+}
+`;
+
+exports[`inputsToRequest should support unnamed arguments 1`] = `
+Object {
+  "args": Object {
+    "0": Array [
+      "0a4cc799563c380000",
+      "0b6255df5f50080000",
+    ],
+    "b": "0x00",
+  },
+  "result": Array [
+    Array [
+      "190000000000000000000",
+      "210000000000000000000",
+    ],
+    "0x00",
+  ],
+}
+`;
+
+exports[`inputsToRequest should throw an error when args mismatch ABI 1`] = `"ABI parameter a not found in [object Object]"`;
+
+exports[`responseToOutput should return a mixed array when ABI length is greater than 1 1`] = `
+Object {
+  "response": Object {
+    "0": "0x00",
+    "1": Array [
+      Array [
+        Array [
+          "string",
+        ],
+        Array [
+          true,
+          false,
+        ],
+      ],
+    ],
+    "a": "0x00",
+    "b": Array [
+      Array [
+        Array [
+          "string",
+        ],
+        Array [
+          true,
+          false,
+        ],
+      ],
+    ],
+  },
+  "result": Array [
+    "0x00",
+    Array [
+      Array [
+        Array [
+          "string",
+        ],
+        Array [
+          true,
+          false,
+        ],
+      ],
+    ],
+  ],
+}
+`;
+
+exports[`responseToOutput should return array of tuple components when length equals 1 1`] = `
+Object {
+  "response": Array [
+    "190000000000000000000",
+    "0x00",
+    true,
+  ],
+  "result": Array [
+    "0a4cc799563c380000",
+    "0x00",
+    true,
+  ],
+}
+`;
+
+exports[`responseToOutput should support both numeric and string keys 1`] = `
+Object {
+  "response": Object {
+    "0": "190000000000000000000",
+    "1": Array [
+      "0x00",
+      "0x00",
+    ],
+    "2": Array [
+      Array [
+        "Hello",
+        Array [
+          "0x00",
+          "0x00",
+          "0x00",
+        ],
+        true,
+      ],
+      Array [
+        "Hello",
+        Array [
+          "0x00",
+          "0x00",
+          "0x00",
+        ],
+        false,
+      ],
+    ],
+    "a": "190000000000000000000",
+    "b": Array [
+      "0x00",
+      "0x00",
+    ],
+    "t": Array [
+      Array [
+        "Hello",
+        Array [
+          "0x00",
+          "0x00",
+          "0x00",
+        ],
+        true,
+      ],
+      Array [
+        "Hello",
+        Array [
+          "0x00",
+          "0x00",
+          "0x00",
+        ],
+        false,
+      ],
+    ],
+  },
+  "tupleComponentKeys": Array [
+    "0",
+    "1",
+    "2",
+    "x",
+    "y",
+    "z",
+  ],
+}
+`;
+
+exports[`responseToOutput should support unnamed parameters 1`] = `
+Object {
+  "response": Object {
+    "0": "190000000000000000000",
+    "1": "0x00",
+  },
+  "result": Array [
+    "0a4cc799563c380000",
+    "0x00",
+  ],
+}
+`;
+
+exports[`responseToOutput should throw an error when response mismatches ABI 1`] = `"Expected an object, or an array, but received 190000000000000000000"`;
