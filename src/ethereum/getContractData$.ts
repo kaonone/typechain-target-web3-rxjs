@@ -1,4 +1,4 @@
-import { Observable, from, merge, empty, ReplaySubject } from 'rxjs';
+import { Observable, from, merge, EMPTY, ReplaySubject } from 'rxjs';
 import { skipUntil, mergeMap, throttleTime, switchMap, shareReplay } from 'rxjs/operators';
 import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
@@ -34,7 +34,7 @@ export function getContractData$(
   method: string,
   options: IOptions = {},
 ): Observable<Response> {
-  const { eventsForReload = [], reloadTrigger$ = empty(), args = [], convert = identity } = options;
+  const { eventsForReload = [], reloadTrigger$ = EMPTY, args = [], convert = identity } = options;
 
   const load = async () => {
     const data = await contract.methods[method](...args).call(options.tx);

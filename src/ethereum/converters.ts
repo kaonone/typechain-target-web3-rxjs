@@ -113,11 +113,11 @@ function convertTupleResponseToOutput(
   return toMixedArray(abiParameter.components, responseValue);
 }
 
-function toMixedArray(abiPararameters: RawAbiParameter[], value: Web3ContractResponse) {
+function toMixedArray(abiParameters: RawAbiParameter[], value: Web3ContractResponse) {
   if (isPlainValue(value)) {
     throw new Error(`Expected an object, or an array, but received ${value}`);
   }
-  return abiPararameters.reduce((resultAcc, componentAbi, index) => {
+  return abiParameters.reduce((resultAcc, componentAbi, index) => {
     const convertedValue = convertResponseValueToOutput(componentAbi, value[index]);
     resultAcc.push(convertedValue);
     if (componentAbi.name) {
@@ -178,7 +178,7 @@ function parseEvmType(abiType: string): { type: EvmType | 'tuple'; isArray: bool
       return 'bytes';
     }
 
-    throw new Error(`Type "${inputType}" cannot be parsed`);
+    throw new Error(`Type "${abiType}" cannot be parsed`);
   })();
 
   return { type, isArray: !!isArray };
