@@ -2,7 +2,7 @@
 
 exports[`extractAbiMethod should return ABI for overloaded method 1`] = `
 Object {
-  "method": "testRead((bool,address[],(uint256,uint256)[]),(bytes,string),uint256)",
+  "method": "testRead((bool,address[2],(uint256,uint256)[]),(bytes,string),uint256)",
   "result": Object {
     "inputs": Array [
       Object {
@@ -13,7 +13,7 @@ Object {
           },
           Object {
             "name": "b",
-            "type": "address[]",
+            "type": "address[2]",
           },
           Object {
             "components": Array [
@@ -55,16 +55,32 @@ Object {
     "name": "testRead",
     "outputs": Array [
       Object {
+        "components": Array [
+          Object {
+            "name": "a",
+            "type": "uint256",
+          },
+          Object {
+            "name": "b",
+            "type": "uint256[2]",
+          },
+          Object {
+            "components": Array [
+              Object {
+                "name": "x",
+                "type": "uint256",
+              },
+              Object {
+                "name": "y",
+                "type": "uint256",
+              },
+            ],
+            "name": "c",
+            "type": "tuple[]",
+          },
+        ],
         "name": "",
-        "type": "address",
-      },
-      Object {
-        "name": "Test",
-        "type": "address",
-      },
-      Object {
-        "name": "",
-        "type": "bool",
+        "type": "tuple",
       },
     ],
     "stateMutability": "view",

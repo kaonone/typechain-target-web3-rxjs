@@ -1,6 +1,10 @@
-import BN from 'bn.js';
+import BN, { isBN } from 'bn.js';
 
 export type JSType = string | BN | boolean;
+export function isPlainValue<T>(value: T): value is Extract<T, JSType> {
+  return typeof value === 'string' || typeof value === 'boolean' || isBN(value);
+}
+
 export type EvmType =
   | 'address'
   | 'integer'
@@ -33,9 +37,12 @@ export type OutputEvmTypeToJSTypeMap = EvmToJSTypeMap<{
 }>;
 
 export type Arguments = Record<string, ArgumentType>;
-export type ArgumentType = JSType | ArgumentType[] | { [key in string]: ArgumentType };
+export type ArgumentType = JSType | ArgumentType[] | { [key in string | number]: ArgumentType };
 
 export type Response = JSType | Response[] | { [key in string | number]: Response };
 
 export type Web3ContractInputArgs = Array<JSType | Web3ContractInputArgs>;
-export type Web3ContractResponse = JSType | Array<Web3ContractResponse>;
+export type Web3ContractResponse =
+  | Exclude<JSType, BN>
+  | Web3ContractResponse[]
+  | { [key in string | number]: Web3ContractResponse };

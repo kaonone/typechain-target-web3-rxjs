@@ -1,4 +1,6 @@
-import { RawAbiDefinition, RawAbiParameter } from 'typechain';
+import { RawAbiDefinition } from 'typechain';
+// @ts-ignore
+import { _jsonInterfaceMethodToString, AbiItem } from 'web3-utils';
 
 export function extractAbiMethod(abi: RawAbiDefinition[], method: string): RawAbiDefinition | null {
   const [, methodName] = method.match(/(\w+?)($|\(.*)/) || [];
@@ -20,7 +22,7 @@ export function extractAbiMethod(abi: RawAbiDefinition[], method: string): RawAb
     return methodEntries[0];
   }
 
-  const entry = methodEntries.find(m => getWeb3Signature(m) === method);
+  const entry = methodEntries.find(m => _jsonInterfaceMethodToString(m as AbiItem) === method);
 
   if (!entry) {
     console.warn(new Error(`Method ${method} not found`));
@@ -28,20 +30,6 @@ export function extractAbiMethod(abi: RawAbiDefinition[], method: string): RawAb
   }
 
   return entry;
-}
-
-function getWeb3Signature(abi: Pick<RawAbiDefinition, 'name' | 'inputs'>): string {
-  return `${abi.name}(${abi.inputs.map(i => getArgumentForSignature(i)).join(',')})`;
-}
-
-function getArgumentForSignature(argument: RawAbiParameter): string {
-  if (argument.type === 'tuple') {
-    return `(${argument.components?.map(i => getArgumentForSignature(i)).join(',')})`;
-  }
-  if (argument.type === 'tuple[]') {
-    return `${getArgumentForSignature({ ...argument, type: 'tuple' })}[]`;
-  }
-  return argument.type;
 }
 
 export function attachStaticFields<T extends {}, I extends Record<string, any>>(

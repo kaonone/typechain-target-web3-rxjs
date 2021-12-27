@@ -10,6 +10,8 @@ import {
   OutputEvmTypeToJSTypeMap,
   Web3ContractInputArgs,
   Web3ContractResponse,
+  ArgumentType,
+  isPlainValue,
 } from './types';
 import { attachStaticFields } from './utils';
 
@@ -17,31 +19,42 @@ export function inputsToRequest(
   inputsAbi: RawAbiParameter[],
   args: Arguments,
 ): Web3ContractInputArgs {
-  if (inputsAbi.length === 0 && args) {
-    throw new Error(`Received arguments ${args} for empty ABI declaration`);
-  }
-
-  return inputsAbi.map(parameterAbi => {
-    const { isArray, type } = parseEvmType(parameterAbi.type);
-    const arg = args[parameterAbi.name];
+  return inputsAbi.map((abiParameter, index) => {
+    const { isArray, type } = parseEvmType(abiParameter.type);
+    const arg = (abiParameter.name && args[abiParameter.name]) || args[index];
     if (!arg) {
-      throw new Error(`ABI parameter ${parameterAbi.name} not found in ${args}`);
-    }
-    if (type === 'tuple') {
-      return isArray
-        ? (arg as Arguments[]).map(innerArgs =>
-            inputsToRequest(parameterAbi.components || [], innerArgs),
-          )
-        : inputsToRequest(parameterAbi.components || [], arg as Arguments);
+      throw new Error(`ABI parameter ${abiParameter.name} not found in ${args}`);
     }
 
-    return isArray
-      ? (arg as JSType[]).map(innerArgs => convertInputValueToRequest(type, innerArgs))
-      : convertInputValueToRequest(type, arg as JSType);
+    if (isArray) {
+      if (!Array.isArray(arg)) {
+        throw new Error(`Expected an array, but received ${arg}`);
+      }
+      return arg.map(innerArgs =>
+        type === 'tuple'
+          ? convertTupleValueToRequest(abiParameter, innerArgs)
+          : convertPlainValueToRequest(type, innerArgs),
+      );
+    }
+
+    return type === 'tuple'
+      ? convertTupleValueToRequest(abiParameter, arg)
+      : convertPlainValueToRequest(type, arg);
   });
 }
 
-function convertInputValueToRequest(type: EvmType, inputValue: JSType): JSType {
+function convertTupleValueToRequest(abiParameter: RawAbiParameter, args: ArgumentType) {
+  if (!abiParameter.components || isPlainValue(args)) {
+    throw new Error(`Unable to convert ${args} to a tuple request`);
+  }
+  return inputsToRequest(abiParameter.components, args as Arguments);
+}
+
+function convertPlainValueToRequest(type: EvmType, inputValue: ArgumentType): JSType {
+  if (!isPlainValue(inputValue)) {
+    throw new Error(`Expected string, boolean, or BN, but received ${inputValue}`);
+  }
+
   const toRequest: {
     [key in EvmType]: (input: InputEvmTypeToJSTypeMap[key]) => JSType;
   } = {
@@ -61,64 +74,85 @@ export function responseToOutput(
   outputsAbi: RawAbiParameter[],
   response: Web3ContractResponse,
 ): Response {
-  if (outputsAbi.length === 0 && response) {
-    throw new Error(`Received response ${response} for empty ABI declaration`);
+  if (outputsAbi.length === 1) {
+    return convertResponseValueToOutput(outputsAbi[0], response);
   }
-  const responseArray = Array.isArray(response) ? response : [response];
 
-  const result = outputsAbi.reduce((acc, parameterAbi, index) => {
-    const { isArray, type } = parseEvmType(parameterAbi.type);
-    const responseItem = responseArray[index];
-
-    if (!responseItem) {
-      throw new Error(`ABI parameter ${parameterAbi.name} not found in ${response}`);
-    }
-
-    let output;
-    if (type === 'tuple') {
-      output = isArray
-        ? (responseItem as JSType[]).map(innerValues =>
-            responseToOutput(parameterAbi.components || [], innerValues),
-          )
-        : responseToOutput(parameterAbi.components || [], responseItem);
-    } else {
-      output = isArray
-        ? (responseItem as JSType[]).map(innerValues =>
-            convertResponseValueToOutput(type, innerValues),
-          )
-        : convertResponseValueToOutput(type, responseItem as JSType);
-    }
-
-    return attachStaticFields([...acc, output], {
-      [parameterAbi.name]: output,
-    });
-  }, [] as Response[]);
-
-  return result.length === 1 ? result[0] : result;
+  return toMixedArray(outputsAbi, response);
 }
 
-function convertResponseValueToOutput(type: EvmType, responseValue: JSType): JSType {
+function convertResponseValueToOutput(
+  abiParameter: RawAbiParameter,
+  responseValue: Web3ContractResponse,
+): Response {
+  const { type, isArray } = parseEvmType(abiParameter.type);
+
+  if (isArray) {
+    if (!Array.isArray(responseValue)) {
+      throw new Error(`Expected an array, but received ${responseValue}`);
+    }
+
+    return responseValue.map(innerValues =>
+      type === 'tuple'
+        ? convertTupleResponseToOutput(abiParameter, innerValues)
+        : convertPlainResponseToOutput(type, innerValues),
+    );
+  }
+  return type === 'tuple'
+    ? convertTupleResponseToOutput(abiParameter, responseValue)
+    : convertPlainResponseToOutput(type, responseValue);
+}
+
+function convertTupleResponseToOutput(
+  abiParameter: RawAbiParameter,
+  responseValue: Web3ContractResponse,
+) {
+  if (!abiParameter.components) {
+    throw new Error(`Components property is required for tuples`);
+  }
+  return toMixedArray(abiParameter.components, responseValue);
+}
+
+function toMixedArray(abiPararameters: RawAbiParameter[], value: Web3ContractResponse) {
+  if (isPlainValue(value)) {
+    throw new Error(`Expected an object, or an array, but received ${value}`);
+  }
+  return abiPararameters.reduce((resultAcc, componentAbi, index) => {
+    const convertedValue = convertResponseValueToOutput(componentAbi, value[index]);
+    resultAcc.push(convertedValue);
+    if (componentAbi.name) {
+      attachStaticFields(resultAcc, { [componentAbi.name]: convertedValue });
+    }
+    return resultAcc;
+  }, [] as Response[]);
+}
+
+function convertPlainResponseToOutput(type: EvmType, value: Web3ContractResponse): JSType {
+  if (!isPlainValue(value)) {
+    throw new Error(`Expected string, boolean, or BN, but received ${value}`);
+  }
+
   const toOutput: {
-    [key in EvmType]: (response: OutputEvmTypeToJSTypeMap[key]) => JSType;
+    [key in EvmType]: (typedValue: OutputEvmTypeToJSTypeMap[key]) => JSType;
   } = {
-    address: value => value,
-    boolean: value => value,
-    integer: value => new BN(value),
-    uinteger: value => new BN(value),
-    string: value => value,
-    bytes: value => value,
-    'dynamic-bytes': value => value,
+    address: v => v,
+    boolean: v => v,
+    integer: v => new BN(v),
+    uinteger: v => new BN(v),
+    string: v => v,
+    bytes: v => v,
+    'dynamic-bytes': v => v,
   };
 
-  return (toOutput[type] as any)(responseValue);
+  return (toOutput[type] as any)(value);
 }
 
 function parseEvmType(abiType: string): { type: EvmType | 'tuple'; isArray: boolean } {
-  const [, inputType, isArray] = abiType.match(/^(.+?)(\[\])?$/) || [];
+  const [, inputType, isArray] = abiType.match(/^(.+?)(\[\d*?\])?$/) || [];
 
   const type = ((): EvmType | 'tuple' => {
     // eslint-disable-next-line default-case
-    switch (abiType) {
+    switch (inputType) {
       case 'bool':
         return 'boolean';
       case 'address':
@@ -144,7 +178,7 @@ function parseEvmType(abiType: string): { type: EvmType | 'tuple'; isArray: bool
       return 'bytes';
     }
 
-    throw new Error(`Type "${abiType}" cannot be parsed`);
+    throw new Error(`Type "${inputType}" cannot be parsed`);
   })();
 
   return { type, isArray: !!isArray };

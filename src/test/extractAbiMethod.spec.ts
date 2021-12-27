@@ -13,7 +13,7 @@ describe('extractAbiMethod', () => {
   });
 
   it('should return ABI for overloaded method', () => {
-    const method = 'testRead((bool,address[],(uint256,uint256)[]),(bytes,string),uint256)';
+    const method = 'testRead((bool,address[2],(uint256,uint256)[]),(bytes,string),uint256)';
     expect({ method, result: extractAbiMethod(testAbi as any, method) }).toMatchSnapshot();
   });
 

@@ -26,7 +26,7 @@
           },
           {
             "name": "b",
-            "type": "address[]"
+            "type": "address[2]"
           },
           {
             "name": "c",
@@ -65,16 +65,32 @@
     ],
     "outputs": [
       {
+        "components": [
+          {
+            "name": "a",
+            "type": "uint256"
+          },
+          {
+            "name": "b",
+            "type": "uint256[2]"
+          },
+          {
+            "components": [
+              {
+                "name": "x",
+                "type": "uint256"
+              },
+              {
+                "name": "y",
+                "type": "uint256"
+              }
+            ],
+            "name": "c",
+            "type": "tuple[]"
+          }
+        ],
         "name": "",
-        "type": "address"
-      },
-      {
-        "name": "Test",
-        "type": "address"
-      },
-      {
-        "name": "",
-        "type": "bool"
+        "type": "tuple"
       }
     ]
   },
