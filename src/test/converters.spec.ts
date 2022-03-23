@@ -1,6 +1,12 @@
 import BN from 'bn.js';
 
-import { inputsToRequest, responseToOutput } from 'ethereum/converters';
+import {
+  inputsToRequest,
+  responseToOutput,
+  eventOptionsToRequest,
+  eventToOutput,
+} from 'ethereum/converters';
+import { SubscribeEventOptions } from 'ethereum/types';
 
 describe('inputsToRequest', () => {
   it('should convert an object of arguments to an array of web3.js arguments', () => {
@@ -165,5 +171,169 @@ describe('responseToOutput', () => {
     };
     const output = responseToOutput(outputsAbi, response);
     expect({ response, tupleComponentKeys: Object.keys((output as any).t[0]) }).toMatchSnapshot();
+  });
+});
+
+describe('eventOptionsToRequest', () => {
+  it('should convert filters', () => {
+    const options: SubscribeEventOptions<any> = {
+      fromBlock: 'latest',
+      filter: {
+        b: [new BN('190000000000000000000'), new BN('210000000000000000000')],
+        c: '0x00',
+      },
+    };
+    expect({ options, result: eventOptionsToRequest(options) }).toMatchSnapshot();
+  });
+
+  it('should not change options without filter', () => {
+    const options: SubscribeEventOptions<any> = {
+      fromBlock: 'latest',
+    };
+    expect({ options, result: eventOptionsToRequest(options) }).toMatchSnapshot();
+  });
+});
+
+describe('eventToOutput', () => {
+  it('should convert a mixed object from response to a mixed array', () => {
+    const eventAbi = [
+      {
+        type: 'event' as const,
+        name: 'Deposit',
+        inputs: [
+          { indexed: false, name: 'amount', type: 'uint256' },
+          { indexed: true, name: 'user', type: 'address' },
+        ],
+      },
+    ];
+    const eventLog = {
+      event: 'Deposit',
+      signature: '0x00',
+      returnValues: {
+        0: '190000000000000000000',
+        1: '0x00',
+        amount: '190000000000000000000',
+        user: '0x00',
+      },
+    };
+    const result = eventToOutput(eventAbi, eventLog as any);
+    expect({
+      eventLog,
+      result,
+    }).toMatchSnapshot();
+
+    expect(result.returnValues[0]).toEqual(result.returnValues.amount);
+  });
+
+  it('should return anonymous event without changes', () => {
+    const eventAbi = [
+      {
+        type: 'event' as const,
+        name: 'Deposit',
+        inputs: [
+          { indexed: false, name: 'amount', type: 'uint256' },
+          { indexed: true, name: 'user', type: 'address' },
+        ],
+        anonymous: true,
+      },
+    ];
+    const eventLog = {
+      event: undefined,
+      signature: null,
+      returnValues: {
+        0: '190000000000000000000',
+        1: '0x00',
+        amount: '190000000000000000000',
+        user: '0x00',
+      },
+    };
+    const result = eventToOutput(eventAbi, eventLog as any);
+    expect({
+      eventLog,
+      result,
+    }).toMatchSnapshot();
+  });
+
+  it('should convert tuples into objects for not indexed input types', () => {
+    const eventAbi = [
+      {
+        type: 'event' as const,
+        name: 'Stake',
+        inputs: [
+          {
+            indexed: false,
+            name: 'data',
+            type: 'tuple',
+            components: [
+              { type: 'uint256', name: 'amount' },
+              { type: 'address', name: 'user' },
+            ],
+          },
+        ],
+      },
+    ];
+    const eventLog = {
+      event: 'Stake',
+      signature: '0x00',
+      returnValues: {
+        0: {
+          0: '190000000000000000000',
+          1: '0x00',
+          amount: '190000000000000000000',
+          address: '0x00',
+        },
+        data: {
+          0: '190000000000000000000',
+          1: '0x00',
+          amount: '190000000000000000000',
+          address: '0x00',
+        },
+      },
+    };
+    const result = eventToOutput(eventAbi, eventLog as any);
+    expect({
+      eventLog,
+      result,
+    }).toMatchSnapshot();
+  });
+
+  it('should return Keccak-256 hash for indexed reference types', () => {
+    const eventAbi = [
+      {
+        type: 'event' as const,
+        name: 'Stake',
+        inputs: [
+          {
+            indexed: true,
+            name: 'data',
+            type: 'tuple',
+            components: [
+              { type: 'uint256', name: 'amount' },
+              { type: 'address', name: 'user' },
+            ],
+          },
+          {
+            indexed: true,
+            name: 'type',
+            type: 'string',
+          },
+        ],
+      },
+    ];
+    const eventLog = {
+      event: 'Stake',
+      signature: '0x00',
+      returnValues: {
+        0: '0x00',
+        1: '0x00',
+        data: '0x00',
+        type: '0x00',
+      },
+    };
+    const result = eventToOutput(eventAbi, eventLog as any);
+    expect({
+      eventLog,
+      result,
+    }).toMatchSnapshot();
   });
 });

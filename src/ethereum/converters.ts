@@ -1,5 +1,10 @@
-import BN from 'bn.js';
-import { RawAbiParameter } from 'typechain';
+import BN, { isBN } from 'bn.js';
+import { RawAbiParameter, RawEventAbiDefinition, RawEventArgAbiDefinition } from 'typechain';
+import {
+  Filter,
+  EventOptions as Web3EventOptions,
+  EventData as Web3EventData,
+} from 'web3-eth-contract';
 
 import {
   JSType,
@@ -12,8 +17,10 @@ import {
   Web3ContractResponse,
   ArgumentType,
   isPlainValue,
+  EventLog,
+  SubscribeEventOptions,
 } from './types';
-import { attachStaticFields } from './utils';
+import { attachStaticFields, extractEventInputs } from './utils';
 
 export function inputsToRequest(
   inputsAbi: RawAbiParameter[],
@@ -182,4 +189,58 @@ function parseEvmType(abiType: string): { type: EvmType | 'tuple'; isArray: bool
   })();
 
   return { type, isArray: !!isArray };
+}
+
+export function eventOptionsToRequest(eventOptions: SubscribeEventOptions<any>): Web3EventOptions {
+  if (!eventOptions.filter) {
+    return eventOptions;
+  }
+  const toEventFilter = (value: any) => (isBN(value) ? value.toString() : value);
+
+  const filter = Object.fromEntries(
+    Object.entries(eventOptions.filter).map(([inputName, value]) => [
+      inputName,
+      Array.isArray(value) ? value.map(toEventFilter) : toEventFilter(value),
+    ]),
+  ) as Filter;
+
+  return { ...eventOptions, filter };
+}
+
+export function eventToOutput(
+  abi: RawEventAbiDefinition[],
+  eventData: Web3EventData,
+): EventLog<any> {
+  const isAnonymous = !eventData.event || !eventData.signature;
+  if (isAnonymous) {
+    console.warn(new Error('Impossible to convert an anonymous event'));
+    return eventData;
+  }
+  const inputsAbi = extractEventInputs(abi, eventData);
+  if (!inputsAbi) {
+    console.warn(new Error(`Event ${eventData.event} not found`));
+    return eventData;
+  }
+
+  const returnValues = inputsAbi.reduce((resultAcc, inputAbi, index) => {
+    const convertedValue = inputAbi.indexed
+      ? convertEventIndexedInputToOutput(inputAbi, eventData.returnValues[index])
+      : convertResponseValueToOutput(inputAbi, eventData.returnValues[index]);
+
+    resultAcc.push(convertedValue);
+    if (inputAbi.name) {
+      attachStaticFields(resultAcc, { [inputAbi.name]: convertedValue });
+    }
+    return resultAcc;
+  }, [] as Response[]);
+
+  return { ...eventData, returnValues };
+}
+
+function convertEventIndexedInputToOutput(
+  abiParameter: RawEventArgAbiDefinition,
+  value: Web3ContractResponse,
+) {
+  const { type, isArray } = parseEvmType(abiParameter.type);
+  return type === 'tuple' || isArray ? value : convertPlainResponseToOutput(type, value);
 }

@@ -1,5 +1,145 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`eventOptionsToRequest should convert filters 1`] = `
+Object {
+  "options": Object {
+    "filter": Object {
+      "b": Array [
+        "0a4cc799563c380000",
+        "0b6255df5f50080000",
+      ],
+      "c": "0x00",
+    },
+    "fromBlock": "latest",
+  },
+  "result": Object {
+    "filter": Object {
+      "b": Array [
+        "190000000000000000000",
+        "210000000000000000000",
+      ],
+      "c": "0x00",
+    },
+    "fromBlock": "latest",
+  },
+}
+`;
+
+exports[`eventOptionsToRequest should not change options without filter 1`] = `
+Object {
+  "options": Object {
+    "fromBlock": "latest",
+  },
+  "result": Object {
+    "fromBlock": "latest",
+  },
+}
+`;
+
+exports[`eventToOutput should convert a mixed object from response to a mixed array 1`] = `
+Object {
+  "eventLog": Object {
+    "event": "Deposit",
+    "returnValues": Object {
+      "0": "190000000000000000000",
+      "1": "0x00",
+      "amount": "190000000000000000000",
+      "user": "0x00",
+    },
+    "signature": "0x00",
+  },
+  "result": Object {
+    "event": "Deposit",
+    "returnValues": Array [
+      "0a4cc799563c380000",
+      "0x00",
+    ],
+    "signature": "0x00",
+  },
+}
+`;
+
+exports[`eventToOutput should convert tuples into objects for not indexed input types 1`] = `
+Object {
+  "eventLog": Object {
+    "event": "Stake",
+    "returnValues": Object {
+      "0": Object {
+        "0": "190000000000000000000",
+        "1": "0x00",
+        "address": "0x00",
+        "amount": "190000000000000000000",
+      },
+      "data": Object {
+        "0": "190000000000000000000",
+        "1": "0x00",
+        "address": "0x00",
+        "amount": "190000000000000000000",
+      },
+    },
+    "signature": "0x00",
+  },
+  "result": Object {
+    "event": "Stake",
+    "returnValues": Array [
+      Array [
+        "0a4cc799563c380000",
+        "0x00",
+      ],
+    ],
+    "signature": "0x00",
+  },
+}
+`;
+
+exports[`eventToOutput should return Keccak-256 hash for indexed reference types 1`] = `
+Object {
+  "eventLog": Object {
+    "event": "Stake",
+    "returnValues": Object {
+      "0": "0x00",
+      "1": "0x00",
+      "data": "0x00",
+      "type": "0x00",
+    },
+    "signature": "0x00",
+  },
+  "result": Object {
+    "event": "Stake",
+    "returnValues": Array [
+      "0x00",
+      "0x00",
+    ],
+    "signature": "0x00",
+  },
+}
+`;
+
+exports[`eventToOutput should return anonymous event without changes 1`] = `
+Object {
+  "eventLog": Object {
+    "event": undefined,
+    "returnValues": Object {
+      "0": "190000000000000000000",
+      "1": "0x00",
+      "amount": "190000000000000000000",
+      "user": "0x00",
+    },
+    "signature": null,
+  },
+  "result": Object {
+    "event": undefined,
+    "returnValues": Object {
+      "0": "190000000000000000000",
+      "1": "0x00",
+      "amount": "190000000000000000000",
+      "user": "0x00",
+    },
+    "signature": null,
+  },
+}
+`;
+
 exports[`inputsToRequest should convert an object of arguments to an array of web3.js arguments 1`] = `
 Object {
   "args": Object {

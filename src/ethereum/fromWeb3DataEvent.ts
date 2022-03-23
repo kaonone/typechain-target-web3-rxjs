@@ -1,15 +1,17 @@
 import { fromEventPattern, Observable } from 'rxjs';
-import { EventLog } from 'web3-core';
+import { EventData } from 'web3-eth-contract';
 
-import { EventEmitter } from './types';
+type EventEmitter = {
+  on(event: string, handler: (event: EventData) => void): EventEmitter;
+};
 
-export function fromWeb3DataEvent(emitter: EventEmitter<any>): Observable<EventLog> {
+export function fromWeb3DataEvent(emitter: EventEmitter): Observable<EventData> {
   interface IUnsubscribable {
     unsubscribe: () => void;
   }
 
-  return fromEventPattern<EventLog>(
-    handler => emitter.on('data', handler as (event: EventLog) => void),
+  return fromEventPattern<EventData>(
+    handler => emitter.on('data', handler),
     (_, signal: IUnsubscribable) => signal.unsubscribe(),
   );
 }
