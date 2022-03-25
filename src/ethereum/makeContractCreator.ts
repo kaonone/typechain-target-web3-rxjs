@@ -20,7 +20,7 @@ import {
   inputsToRequest,
   responseToOutput,
 } from './converters';
-import { fromWeb3DataEvent } from './fromWeb3DataEvent';
+import { fromWeb3ContractEvent } from './fromWeb3ContractEvent';
 
 export function makeContractCreator<C extends ContractWrapper>(abi: any[]) {
   return (web3: Web3, address: string): C => {
@@ -108,7 +108,7 @@ function makeEventsProxy(abi: any, baseContract: Contract) {
             return callback?.(error, eventToOutput(abi, event));
           };
 
-          return fromWeb3DataEvent(
+          return fromWeb3ContractEvent(
             baseContract.events[prop](convertedOptions, convertedCallback),
           ).pipe(map(event => eventToOutput(abi, event)));
         };
