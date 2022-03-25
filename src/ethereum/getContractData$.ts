@@ -59,7 +59,7 @@ export function getContractData$(
       return event;
     }),
     mergeMap(() => from(load()), 1),
-    shareReplay(1),
+    shareReplay({ refCount: true, bufferSize: 1 }),
   );
 
   const subject = new ReplaySubject<Response>(1);

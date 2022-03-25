@@ -8,6 +8,10 @@ import {
 } from 'ethereum/converters';
 import { SubscribeEventOptions } from 'ethereum/types';
 
+beforeAll(() => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
 describe('inputsToRequest', () => {
   it('should convert an object of arguments to an array of web3.js arguments', () => {
     const inputsAbi = [
@@ -297,7 +301,7 @@ describe('eventToOutput', () => {
     }).toMatchSnapshot();
   });
 
-  it('should return Keccak-256 hash for indexed reference types', () => {
+  it('should not convert tuples into objects for indexed reference types', () => {
     const eventAbi = [
       {
         type: 'event' as const,

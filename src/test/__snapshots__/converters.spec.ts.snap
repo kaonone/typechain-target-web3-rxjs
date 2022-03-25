@@ -92,7 +92,7 @@ Object {
 }
 `;
 
-exports[`eventToOutput should return Keccak-256 hash for indexed reference types 1`] = `
+exports[`eventToOutput should not convert tuples into objects for indexed reference types 1`] = `
 Object {
   "eventLog": Object {
     "event": "Stake",
