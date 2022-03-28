@@ -1,12 +1,7 @@
-import {
-  EventLog as Web3EventLog,
-  TransactionReceipt,
-  PromiEvent,
-  TransactionConfig,
-} from 'web3-core';
+import { TransactionReceipt, PromiEvent, TransactionConfig } from 'web3-core';
 import { O } from 'ts-toolbelt';
 import { Observable } from 'rxjs';
-import { Contract } from 'web3-eth-contract';
+import { Contract, EventData as Web3EventData } from 'web3-eth-contract';
 
 import { Arguments, Response } from './core';
 
@@ -20,7 +15,7 @@ export interface ContractWrapper extends Omit<Contract, 'methods' | 'events' | '
 
 export type CallMethod<Input extends Arguments | void, Output extends Response | void> = (
   input: Input,
-  eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
+  eventsForReload?: Observable<EventLog<any>> | Observable<EventLog<any>>[],
   tx?: CallOptions,
 ) => Observable<Output>;
 
@@ -35,13 +30,13 @@ export type SendMethod<Input extends Arguments | void, Output extends Response |
 export type ReadMethod<Input extends Arguments | void, Output extends Response | void> = (
   input: Input,
   tx: SendOptions,
-  eventsForReload?: EventEmitter<any> | EventEmitter<any>[],
+  eventsForReload?: Observable<EventLog<any>> | Observable<EventLog<any>>[],
 ) => Observable<Output>;
 
 export type EventMethod<Input extends Arguments | void, IndexedInput extends Arguments | void> = (
   options?: SubscribeEventOptions<IndexedInput>,
   cb?: Callback<EventLog<Input>>,
-) => EventEmitter<Input>;
+) => Observable<EventLog<Input>>;
 
 export type PastEventsMethod<
   Inputs extends Record<string, Arguments | void>,
@@ -63,14 +58,17 @@ export type PastEventsMethod<
   ): Promise<EventLog<Inputs[EventName]>[]>;
 };
 
-type PastEventsOptions<IndexedInput extends Arguments | void> = SubscribeEventOptions<
+export type PastEventsOptions<IndexedInput extends Arguments | void> = SubscribeEventOptions<
   IndexedInput
 > & {
   toBlock?: BlockType;
 };
 
-interface SubscribeEventOptions<IndexedInput extends Arguments | void> {
-  filter?: Partial<IndexedInput>;
+type Filter<IndexedInput> = {
+  [K in keyof IndexedInput]?: IndexedInput[K] | Array<IndexedInput[K]>;
+};
+export interface SubscribeEventOptions<IndexedInput extends Arguments | void> {
+  filter?: Filter<IndexedInput>;
   fromBlock?: BlockType;
   topics?: string[];
 }
@@ -91,17 +89,7 @@ export interface TransactionObject {
   encodeABI(): string;
 }
 
-export type EventLog<T> = Omit<Web3EventLog, 'returnValues'> & { returnValues: T };
-
-export interface EventEmitter<T> {
-  on(type: 'data', handler: (event: EventLog<T>) => void): EventEmitter<T>;
-  on(type: 'changed', handler: (receipt: EventLog<T>) => void): EventEmitter<T>;
-  on(type: 'error', handler: (error: Error) => void): EventEmitter<T>;
-  on(
-    type: 'error' | 'data' | 'changed',
-    handler: (error: Error | TransactionReceipt | string) => void,
-  ): EventEmitter<T>;
-}
+export type EventLog<T> = Omit<Web3EventData, 'returnValues'> & { returnValues: T };
 
 export type SendOptions = O.Required<CallOptions, 'from'>;
 

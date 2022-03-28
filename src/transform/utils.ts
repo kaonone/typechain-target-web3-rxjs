@@ -6,9 +6,10 @@ import {
   EvmType,
   EvmOutputType,
   FunctionDeclaration,
-  getSignatureForFn,
   TupleType,
   getUsedIdentifiers,
+  ArrayType,
+  EventArgDeclaration,
 } from 'typechain';
 
 export function unfoldOverloadedDeclarations<T extends FunctionDeclaration | EventDeclaration>(
@@ -49,6 +50,23 @@ export function codegenOutputTypes(outputs: O.Optional<AbiOutputParameter, 'name
     }`;
 }
 
+export function codegenEventInputTypes(inputs: O.Optional<EventArgDeclaration, 'name'>[]): string {
+  if (inputs.length === 0) {
+    return 'void';
+  }
+  return `{
+    ${inputs
+      .map(
+        (input, index) =>
+          `${input.name || index}: ${
+            input.isIndexed
+              ? codegenEventIndexedInputType(input.type)
+              : codegenInputType(input.type)
+          }`,
+      )
+      .join(';\n')}
+  }`;
+}
 export function codegenInputType(evmType: EvmType): string {
   switch (evmType.type) {
     case 'integer':
@@ -126,6 +144,29 @@ function codegenOutputTupleType(tuple: TupleType) {
   }`;
 }
 
+/*
+ * Reference types are encoded in Keccak-256 hash for indexed inputs.
+ * See: https://docs.soliditylang.org/en/v0.8.13/contracts.html#events
+ */
+export function codegenEventIndexedInputType(evmType: EvmType): string {
+  switch (evmType.type) {
+    case 'integer':
+    case 'uinteger':
+      return 'BN';
+    case 'address':
+    case 'bytes':
+    case 'dynamic-bytes':
+    case 'array':
+    case 'boolean':
+    case 'string':
+    case 'tuple':
+      return 'string';
+    case 'unknown':
+    default:
+      throw new Error(`Unhandled type while code generation: ${evmType.originalType}`);
+  }
+}
+
 export function uniq<T>(array: T[]): T[] {
   return array.reduce((acc, curr) => (acc.includes(curr) ? acc : [...acc, curr]), [] as T[]);
 }
@@ -165,4 +206,25 @@ function createImportDeclaration(identifiers: Identifier[], moduleSpecifier: str
 
 function getIdentifierName(identifier: Identifier) {
   return typeof identifier === 'string' ? identifier : identifier[0];
+}
+
+function getSignatureForFn(fn: FunctionDeclaration) {
+  return `${fn.name}(${fn.inputs.map(i => getArgumentForSignature(i)).join(',')})`;
+}
+
+function getArgumentForSignature(argument: AbiParameter): string {
+  if (argument.type.originalType === 'tuple') {
+    return `(${(argument.type as TupleType).components
+      .map(i => getArgumentForSignature(i))
+      .join(',')})`;
+  }
+  const match = argument.type.originalType.match(/tuple\[(\d*)\]/);
+  if (match) {
+    return `${getArgumentForSignature({
+      name: '',
+      type: (argument.type as ArrayType).itemType,
+    })}[${match[1]}]`;
+  }
+
+  return argument.type.originalType;
 }

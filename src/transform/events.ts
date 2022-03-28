@@ -1,6 +1,6 @@
 import { EventDeclaration } from 'typechain';
 
-import { codegenInputTypes, uniq } from './utils';
+import { uniq, codegenEventInputTypes } from './utils';
 
 export function codegenEvents(events: EventDeclaration[]): string {
   const format = (event: EventDeclaration) => `${event.name}: EventMethod<
@@ -8,7 +8,7 @@ export function codegenEvents(events: EventDeclaration[]): string {
   ${getEventIndexedInputName(event)}
 >`;
 
-  return [...events.map(format), `allEvents: ${codegenForAllEvents(events)}`].join(';\n');
+  return [...events.map(format), 'allEvents: EventMethod<AllInputs, AllIndexedInputs>'].join(';\n');
 }
 
 export function codegenPastEvents(events: EventDeclaration[]): string {
@@ -20,30 +20,28 @@ export function codegenPastEvents(events: EventDeclaration[]): string {
     `${event.name}: ${getEventIndexedInputName(event)}`;
 
   return `PastEventsMethod<
-  {${events.map(formatAllEvents).join(';\n')}},
-  {${events.map(formatIndexedEvents).join(';\n')}}
+  {${[...events.map(formatAllEvents), 'allEvents: AllInputs'].join(';\n')}},
+  {${[...events.map(formatIndexedEvents), 'allEvents: AllIndexedInputs'].join(';\n')}}
 >`;
 }
 
-export function codegenEventInputTypes(events: EventDeclaration[]): string {
+export function codegenEventsInputTypes(events: EventDeclaration[]): string {
   const formatAllEvents = (event: EventDeclaration) =>
-    `type ${getEventInputName(event)} = ${codegenInputTypes(event.inputs)}`;
+    `type ${getEventInputName(event)} = ${codegenEventInputTypes(event.inputs)}`;
+
   const formatIndexedEvents = (event: EventDeclaration) =>
-    `type ${getEventIndexedInputName(event)} = ${codegenInputTypes(
+    `type ${getEventIndexedInputName(event)} = ${codegenEventInputTypes(
       event.inputs.filter(input => input.isIndexed),
     )}`;
 
   return `
   ${uniq(events.map(formatAllEvents)).join(';\n')}
   ${uniq(events.map(formatIndexedEvents)).join(';\n')}
-`;
-}
 
-function codegenForAllEvents(events: EventDeclaration[]): string {
-  return `EventMethod<
-  ${uniq(events.map(getEventInputName)).join(' | ') || 'void'},
-  ${uniq(events.map(getEventIndexedInputName)).join(' | ') || 'void'}
->`;
+  type AllInputs = ${uniq(events.map(getEventInputName)).join(' | ') || 'void'};
+  
+  type AllIndexedInputs = ${uniq(events.map(getEventIndexedInputName)).join(' | ') || 'void'}
+`;
 }
 
 function getEventInputName(event: EventDeclaration) {

@@ -1,6 +1,8 @@
-import { RawAbiDefinition } from 'typechain';
+import { RawAbiDefinition, RawEventAbiDefinition, RawEventArgAbiDefinition } from 'typechain';
 // @ts-ignore
 import { _jsonInterfaceMethodToString, AbiItem } from 'web3-utils';
+import abiCoder, { AbiCoder } from 'web3-eth-abi';
+import { EventData as Web3EventData } from 'web3-eth-contract';
 
 export function extractAbiMethod(abi: RawAbiDefinition[], method: string): RawAbiDefinition | null {
   const [, methodName] = method.match(/(\w+?)($|\(.*)/) || [];
@@ -30,6 +32,26 @@ export function extractAbiMethod(abi: RawAbiDefinition[], method: string): RawAb
   }
 
   return entry;
+}
+
+export function extractEventInputs(
+  abi: RawEventAbiDefinition[],
+  eventLog: Web3EventData,
+): RawEventArgAbiDefinition[] | null {
+  const eventEntries = abi.filter(
+    e => e.name === eventLog.event && e.type === 'event' && !e.anonymous,
+  );
+
+  if (eventEntries.length === 1) {
+    return eventEntries[0].inputs;
+  }
+
+  const entry = eventEntries.find(e => {
+    const signature = ((abiCoder as unknown) as AbiCoder).encodeEventSignature(e);
+    return signature === eventLog.signature;
+  });
+
+  return entry?.inputs || null;
 }
 
 export function attachStaticFields<T extends {}, I extends Record<string, any>>(

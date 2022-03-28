@@ -3,9 +3,8 @@ import { skipUntil, mergeMap, throttleTime, switchMap, shareReplay } from 'rxjs/
 import { Eth } from 'web3-eth';
 import { Contract } from 'web3-eth-contract';
 
-import { fromWeb3DataEvent } from './fromWeb3DataEvent';
 import {
-  EventEmitter,
+  EventLog,
   CallOptions,
   Web3ContractInputArgs,
   Web3ContractResponse,
@@ -13,7 +12,7 @@ import {
 } from './types';
 
 interface IOptions {
-  eventsForReload?: EventEmitter<any> | EventEmitter<any>[];
+  eventsForReload?: Observable<EventLog<any>> | Observable<EventLog<any>>[];
   reloadTrigger$?: Observable<any>;
   args?: Web3ContractInputArgs;
   convert?(value: Web3ContractResponse): Response | void;
@@ -41,10 +40,10 @@ export function getContractData$(
     return convert(data);
   };
 
-  const emitters = Array.isArray(eventsForReload) ? eventsForReload : [eventsForReload];
+  const reloadEvents = Array.isArray(eventsForReload) ? eventsForReload : [eventsForReload];
 
   const first$ = from(load());
-  const fromEvents$ = merge(...emitters.map(emitter => fromWeb3DataEvent(emitter))).pipe(
+  const fromEvents$ = merge(...reloadEvents).pipe(
     skipUntil(first$),
     throttleTime(200),
     switchMap(async event => {
@@ -60,7 +59,7 @@ export function getContractData$(
       return event;
     }),
     mergeMap(() => from(load()), 1),
-    shareReplay(1),
+    shareReplay({ refCount: true, bufferSize: 1 }),
   );
 
   const subject = new ReplaySubject<Response>(1);

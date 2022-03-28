@@ -2,11 +2,11 @@ import { extractAbiMethod } from 'ethereum/utils';
 
 import testAbi from './abi/testAbi.json';
 
-describe('extractAbiMethod', () => {
-  beforeEach(() => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-  });
+beforeAll(() => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+});
 
+describe('extractAbiMethod', () => {
   it('should return ABI for simple method', () => {
     const method = 'testSend';
     expect({ method, result: extractAbiMethod(testAbi as any, method) }).toMatchSnapshot();
