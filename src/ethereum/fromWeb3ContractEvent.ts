@@ -18,7 +18,7 @@ export function fromWeb3ContractEvent(emitter: EventEmitter): Observable<EventDa
   );
 
   const error$ = fromEventPattern(
-    handler => emitter.on('changed', handler),
+    handler => emitter.on('error', handler),
     (_, signal: Unsubscribable) => signal.unsubscribe(),
   ).pipe(switchMap(error => throwError(error)));
 
