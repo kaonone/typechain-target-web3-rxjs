@@ -78,6 +78,7 @@ type Callback<T> = (error: Error, result: T) => void;
 
 export interface TransactionObject {
   arguments: any[];
+  value?: string;
   call(tx?: CallOptions): Promise<TransactionReceipt>;
   send: {
     (tx?: SendOptions): PromiEvent<TransactionReceipt>;
